@@ -43,10 +43,16 @@ export async function paymentPointCreateVirtualAccount(input: {
 }): Promise<{ accountNumber: string; bankName: string; accountName: string; accountReference?: string }> {
   const base = process.env.PAYMENTPOINT_BASE_URL || "https://api.paymentpoint.co/api/v1"
   const apiKey = process.env.PAYMENTPOINT_API_KEY || process.env.PAYMENTPOINT_PUBLIC_KEY || ""
-  const apiSecret = process.env.PAYMENTPOINT_API_SECRET || ""
+  const apiSecret = process.env.PAYMENTPOINT_SECRET_KEY || process.env.PAYMENTPOINT_API_SECRET || ""
+  const businessId = input.businessId || process.env.PAYMENTPOINT_BUSINESS_ID || ""
+
   if (!apiKey || !apiSecret) {
-    throw new Error("Missing PAYMENTPOINT_API_KEY or PAYMENTPOINT_API_SECRET")
+    throw new Error("Missing PAYMENTPOINT_API_KEY or PAYMENTPOINT_SECRET_KEY")
   }
+
+  // Ensure base ends with /api/v1 if it's the root domain
+  const apiUrl = base.endsWith("/api/v1") ? base : `${base.replace(/\/$/, "")}/api/v1`
+
   const headers = {
     Authorization: `Bearer ${apiSecret}`,
     "api-key": apiKey,
@@ -57,9 +63,9 @@ export async function paymentPointCreateVirtualAccount(input: {
     name: input.name,
     phoneNumber: input.phoneNumber,
     bankCode: input.bankCode || "20946",
-    businessId: input.businessId,
+    businessId: businessId,
   }
-  const res = await fetch(`${base}/createVirtualAccount`, {
+  const res = await fetch(`${apiUrl}/createVirtualAccount`, {
     method: "POST",
     headers,
     body: JSON.stringify(body),
