@@ -83,15 +83,42 @@ export async function paymentPointCreateVirtualAccount(input: {
     body: JSON.stringify(body),
   })
   const json: any = await res.json().catch(() => ({}))
+
+  // PaymentPoint often returns success in 'status' field even if res.ok is false or 201
+  const isSuccess = res.ok || json?.status === "success" || json?.status === "true" || !!json?.data
+
   const payload = json?.data || json?.responseBody || json
+  const bankAccount = Array.isArray(json?.bankAccounts) ? json.bankAccounts[0] : null
+
   const accountNumber = String(
-    payload?.accountNumber || payload?.account?.number || payload?.virtualAccountNumber || "",
+    bankAccount?.accountNumber ||
+    payload?.accountNumber ||
+    payload?.account?.number ||
+    payload?.virtualAccountNumber ||
+    ""
   )
-  const bankName = String(payload?.bankName || payload?.bank?.name || "PaymentPoint Partner Bank")
-  const accountName = String(payload?.accountName || input.name)
-  const accountReference = payload?.accountReference || payload?.reference
-  if (!res.ok || !accountNumber) {
+
+  const bankName = String(
+    bankAccount?.bankName ||
+    payload?.bankName ||
+    payload?.bank?.name ||
+    "PaymentPoint Partner Bank"
+  )
+
+  const accountName = String(
+    bankAccount?.accountName ||
+    payload?.accountName ||
+    input.name
+  )
+
+  const accountReference =
+    bankAccount?.Reserved_Account_Id ||
+    payload?.accountReference ||
+    payload?.reference
+
+  if (!isSuccess || !accountNumber || accountNumber === "undefined") {
     throw new Error(`PaymentPoint create virtual account failed: ${res.status} ${JSON.stringify(json)}`)
   }
+
   return { accountNumber, bankName, accountName, accountReference }
 }
