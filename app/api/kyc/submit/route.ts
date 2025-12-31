@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: auth.user.id,
         type: type as any,
+        idNumber: idNumber,
         status: "PENDING" as any,
       },
     })

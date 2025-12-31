@@ -41,11 +41,12 @@ export async function GET(req: NextRequest) {
     const result = list.map((k: any) => ({
       id: k.id,
       userId: k.userId,
+      userEmail: k.user.email,
+      idNumber: k.idNumber,
       type: k.type,
       status: k.status,
       submittedAt: k.submittedAt,
       reviewedAt: k.reviewedAt,
-      user: { id: k.user.id, email: k.user.email },
       documents: (k.documents || []).map((d: any) => ({ id: d.id, type: d.type, fileUrl: d.fileUrl })),
     }))
 

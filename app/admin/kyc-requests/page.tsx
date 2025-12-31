@@ -17,7 +17,8 @@ interface AdminKycItem {
   id: string
   userId: string
   userEmail: string
-  type: "BVN" | "NIN"
+  idNumber?: string | null
+  type: "BVN" | "NIN" | "PASSPORT" | "VOTER_ID" | "DRIVER_LICENSE" | "OTHER"
   status: "PENDING" | "APPROVED" | "REJECTED"
   submittedAt: string
   reviewedAt?: string | null
@@ -315,6 +316,12 @@ export default function AdminKYCRequestsPage() {
                   <Label className="text-muted-foreground">Type</Label>
                   <p className="font-medium mt-1">{selectedRequest.type}</p>
                 </div>
+                {selectedRequest.idNumber && (
+                  <div>
+                    <Label className="text-muted-foreground">{selectedRequest.type} Number</Label>
+                    <p className="font-medium mt-1 font-mono">{selectedRequest.idNumber}</p>
+                  </div>
+                )}
                 <div>
                   <Label className="text-muted-foreground">Status</Label>
                   <div className="mt-1">{getStatusBadge(selectedRequest.status)}</div>
