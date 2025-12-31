@@ -4,18 +4,33 @@ import { verifyPaymentPointSignature, getPPReference, getPPStatus, getPPAmount }
 
 export async function POST(req: NextRequest) {
   try {
-    const secret = process.env.PAYMENTPOINT_SECRET_KEY ||
-      process.env.PAYMENTPOINT_WEBHOOK_SECRET ||
-      process.env.PAYMENTPOINT_API_SECRET ||
-      process.env.PAYMENTPOINT_KEY || ""
     const raw = await req.text()
     const signature = req.headers.get("x-paymentpoint-signature") ||
       req.headers.get("paymentpoint-signature") ||
       req.headers.get("x-signature") ||
       req.headers.get("signature")
 
+    // Log to Database IMMEDIATELY to see if it's hitting the server at all
+    await prisma.auditLog.create({
+      data: {
+        action: "PAYMENTPOINT_WEBHOOK_RECEIVED",
+        resourceType: "Webhook",
+        resourceId: "INCOMING",
+        diffJson: {
+          rawBody: raw.length > 5 ? raw.slice(0, 500) : raw,
+          signature,
+          headers: Object.fromEntries(req.headers.entries())
+        }
+      }
+    }).catch(() => { })
+
+    const secret = process.env.PAYMENTPOINT_SECRET_KEY ||
+      process.env.PAYMENTPOINT_WEBHOOK_SECRET ||
+      process.env.PAYMENTPOINT_API_SECRET ||
+      process.env.PAYMENTPOINT_KEY || ""
+
     if (!secret || !verifyPaymentPointSignature(raw, signature, secret)) {
-      console.error("PaymentPoint Webhook: Invalid signature or missing secret. Using secret prefix:", secret.slice(0, 4))
+      console.error("PaymentPoint Webhook: Invalid signature or missing secret.")
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
 
@@ -23,16 +38,6 @@ export async function POST(req: NextRequest) {
     const reference = getPPReference(body)
     const status = (getPPStatus(body) || "").toUpperCase()
     const amount = getPPAmount(body)
-
-    // Log to Database for retrieval without terminal access
-    await prisma.auditLog.create({
-      data: {
-        action: "PAYMENTPOINT_WEBHOOK_RECEIVED",
-        resourceType: "Webhook",
-        resourceId: reference,
-        diffJson: body
-      }
-    }).catch(() => { })
 
     if (!reference) {
       console.warn("[Webhook Debug] Missing reference in payload")
