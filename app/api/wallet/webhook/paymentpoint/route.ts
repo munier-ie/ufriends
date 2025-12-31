@@ -4,8 +4,8 @@ import { verifyPaymentPointSignature, getPPReference, getPPStatus, getPPAmount }
 
 export async function POST(req: NextRequest) {
   try {
-    const secret = process.env.PAYMENTPOINT_WEBHOOK_SECRET ||
-      process.env.PAYMENTPOINT_SECRET_KEY ||
+    const secret = process.env.PAYMENTPOINT_SECRET_KEY ||
+      process.env.PAYMENTPOINT_WEBHOOK_SECRET ||
       process.env.PAYMENTPOINT_API_SECRET ||
       process.env.PAYMENTPOINT_KEY || ""
     const raw = await req.text()
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
       req.headers.get("signature")
 
     if (!secret || !verifyPaymentPointSignature(raw, signature, secret)) {
-      console.error("PaymentPoint Webhook: Invalid signature or missing secret")
+      console.error("PaymentPoint Webhook: Invalid signature or missing secret. Using secret prefix:", secret.slice(0, 4))
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
 
@@ -32,8 +32,16 @@ export async function POST(req: NextRequest) {
 
     // If no payment record found, it might be a direct transfer to a reserved account
     if (!payment) {
-      // Look for a VirtualAccount mapping to this reference or accountNumber in the body
-      const vaAccountNum = body?.accountNumber || body?.bankAccount?.accountNumber || (Array.isArray(body?.bankAccounts) ? body.bankAccounts[0]?.accountNumber : null)
+      console.log(`PaymentPoint Webhook: Processing potential direct transfer for ref ${reference}`)
+
+      // Robust account number extraction
+      const data = body?.data || body
+      const vaAccountNum = data?.accountNumber ||
+        data?.destinationAccountNumber ||
+        data?.beneficiaryAccountNumber ||
+        data?.bankAccount?.accountNumber ||
+        (Array.isArray(data?.bankAccounts) ? data.bankAccounts[0]?.accountNumber : null) ||
+        body?.account_number
 
       const va = await prisma.virtualAccount.findFirst({
         where: {
@@ -54,7 +62,7 @@ export async function POST(req: NextRequest) {
             amount: amount,
             reference: reference,
             provider: "PaymentPoint",
-            status: "PENDING",
+            status: "INIT", // Fixed: must be INIT, SUCCESS, or FAILED
             type: "WALLET_FUND",
             webhookPayload: body
           }
@@ -77,13 +85,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (!payment) {
-      console.warn(`PaymentPoint Webhook: No user or payment found for reference ${reference}`)
-      return NextResponse.json({ ok: true }) // Accept to stop retries if we can't map it
+      console.warn(`PaymentPoint Webhook: No user or payment found for reference ${reference}. Body: ${raw}`)
+      return NextResponse.json({ ok: true })
     }
 
     const userId = payment.userId
 
-    if (status === "SUCCESS") {
+    if (status === "SUCCESS" || status === "COMPLETED" || status === "TRUE") {
       if (payment.status !== "SUCCESS") {
         // Calculate fee: 0.5% capped at 50 NGN
         const fee = Math.min(amount * 0.005, 50)

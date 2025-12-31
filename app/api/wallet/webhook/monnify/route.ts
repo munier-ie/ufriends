@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
 
     if (!payment) {
       // Monnify direct transfers usually have the accountReference in the body
-      // or we can look up by the paymentReference/accountNumber
-      const accountNumber = body?.destAccountNumber || body?.accountNumber
+      console.log(`Monnify Webhook: Processing potential direct transfer for ref ${reference}`)
+      const accountNumber = body?.destAccountNumber || body?.accountNumber || body?.product?.accountNumber
       const va = await prisma.virtualAccount.findFirst({
         where: {
           OR: [
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
             amount: amount,
             reference: reference,
             provider: "Monnify",
-            status: "PENDING",
+            status: "INIT", // Fixed enum
             type: "WALLET_FUND",
             webhookPayload: body
           }
@@ -68,13 +68,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (!payment) {
-      console.warn(`Monnify Webhook: No user or payment found for reference ${reference}`)
+      console.warn(`Monnify Webhook: No user or payment found for reference ${reference}. Body: ${raw}`)
       return NextResponse.json({ ok: true })
     }
 
     const userId = payment.userId
 
-    if (status === "SUCCESS") {
+    if (status === "SUCCESS" || status === "PAID") {
       if (payment.status !== "SUCCESS") {
         // Calculate fee: 1.5% capped at 2000 NGN
         const fee = Math.min(amount * 0.015, 2000)
