@@ -255,6 +255,12 @@ export function DashboardContent() {
   const [recentTransactions, setRecentTransactions] = useState<RecentTx[]>(fallbackRecentTransactions)
   const [monthlySpending, setMonthlySpending] = useState<MonthlySpendPoint[]>([])
   const [categorySpending, setCategorySpending] = useState<CategorySpendPoint[]>([])
+  const [stats, setStats] = useState<{
+    transactions: { value: number; growth: number };
+    servicesUsed: { value: number; total: number };
+    savings: { value: number; growth: number };
+  } | null>(null)
+  const [statsLoading, setStatsLoading] = useState(true)
 
   const { data: session } = useSession()
   const [me, setMe] = useState<{ name?: string; email?: string; phone?: string; role?: string; isKycVerified?: boolean } | null>(null)
@@ -398,12 +404,28 @@ export function DashboardContent() {
       }
     }
 
+    const loadStats = async () => {
+      try {
+        setStatsLoading(true)
+        const res = await authFetch("/api/dashboard/stats")
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data.stats)
+        }
+      } catch (err) {
+        console.error("Failed to load dashboard stats", err)
+      } finally {
+        setStatsLoading(false)
+      }
+    }
+
     // Call loaders on mount
     loadKYCStatus()
     loadWalletBalance()
     loadBankDetails()
     loadRecentTransactions()
     loadSpendMetrics()
+    loadStats()
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === "ufriends_wallet_balance" && e.newValue) {
@@ -857,7 +879,7 @@ export function DashboardContent() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {isLoading ? (
+        {statsLoading ? (
           Array.from({ length: 3 }).map((_, i) => <StatCardSkeleton key={i} />)
         ) : (
           <>
@@ -866,8 +888,14 @@ export function DashboardContent() {
                 <CardTitle className="text-sm font-medium">Transactions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">47</div>
-                <p className="text-xs text-muted-foreground">+12 from last week</p>
+                <div className="text-2xl font-bold">{stats?.transactions.value ?? 0}</div>
+                <p className={`text-xs ${stats?.transactions.growth && stats.transactions.growth >= 0 ? "text-green-600" : "text-red-600"} flex items-center gap-1`}>
+                  {stats?.transactions.growth !== undefined ? (
+                    <>
+                      {stats.transactions.growth >= 0 ? "+" : ""}{stats.transactions.growth}% from last month
+                    </>
+                  ) : "-"}
+                </p>
               </CardContent>
             </Card>
 
@@ -876,8 +904,8 @@ export function DashboardContent() {
                 <CardTitle className="text-sm font-medium">Services Used</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8</div>
-                <p className="text-xs text-muted-foreground">Out of 12 available</p>
+                <div className="text-2xl font-bold">{stats?.servicesUsed.value ?? 0}</div>
+                <p className="text-xs text-muted-foreground">Out of {stats?.servicesUsed.total ?? 12} available</p>
               </CardContent>
             </Card>
 
@@ -886,8 +914,14 @@ export function DashboardContent() {
                 <CardTitle className="text-sm font-medium">Monthly Savings</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">₦2,340</div>
-                <p className="text-xs text-muted-foreground">+15% from last month</p>
+                <div className="text-2xl font-bold text-green-600">₦{(stats?.savings.value ?? 0).toLocaleString()}</div>
+                <p className={`text-xs ${stats?.savings.growth && stats.savings.growth >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {stats?.savings.growth !== undefined ? (
+                    <>
+                      {stats.savings.growth >= 0 ? "+" : ""}{stats.savings.growth}% from last month
+                    </>
+                  ) : "-"}
+                </p>
               </CardContent>
             </Card>
           </>
