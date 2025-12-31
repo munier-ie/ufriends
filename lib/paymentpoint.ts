@@ -21,15 +21,18 @@ export type PaymentPointWebhookPayload = {
 }
 
 export function getPPReference(body: PaymentPointWebhookPayload): string | undefined {
-  return body?.reference
+  const data = (body?.data || body) as any
+  return data?.reference || data?.payment_reference || data?.txn_ref || data?.transaction_reference
 }
 
 export function getPPStatus(body: PaymentPointWebhookPayload): string | undefined {
-  return body?.status
+  const data = (body?.data || body) as any
+  return data?.status || data?.payment_status || data?.transaction_status
 }
 
 export function getPPAmount(body: PaymentPointWebhookPayload): number {
-  const val = body?.amount ?? 0
+  const data = (body?.data || body) as any
+  const val = data?.amount ?? data?.total_amount ?? 0
   const n = typeof val === "string" ? Number(val) : (val as number)
   return Number.isFinite(n) ? n : 0
 }
