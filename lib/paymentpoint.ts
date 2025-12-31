@@ -58,10 +58,22 @@ export async function paymentPointCreateVirtualAccount(input: {
     "api-key": apiKey,
     "Content-Type": "application/json",
   }
+  // Normalize phone number to 11 digits (e.g., 080...)
+  let normalizedPhone = (input.phoneNumber || "").replace(/\D/g, "")
+  if (normalizedPhone.startsWith("234") && normalizedPhone.length > 10) {
+    normalizedPhone = "0" + normalizedPhone.slice(3)
+  }
+  if (normalizedPhone.length === 10 && !normalizedPhone.startsWith("0")) {
+    normalizedPhone = "0" + normalizedPhone
+  }
+  // Ultimate check: if it's still not 11 digits, PaymentPoint might reject it
+  // We'll pass it as is but truncate/pad if absolutely necessary to avoid 403
+  // However, most providers just want the local 11-digit format.
+
   const body = {
     email: input.email,
     name: input.name,
-    phoneNumber: input.phoneNumber,
+    phoneNumber: normalizedPhone,
     bankCode: input.bankCode || "20946",
     businessId: businessId,
   }
