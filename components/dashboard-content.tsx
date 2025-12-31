@@ -727,18 +727,21 @@ export function DashboardContent() {
               {monnifyVA ? (
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Account Number:</span>
-                    <span className="text-sm font-medium">{monnifyVA.accountNumber}</span>
+                    <span className="text-xs text-muted-foreground">Name:</span>
+                    <span className="text-xs font-medium truncate ml-2">{monnifyVA.accountName || "UFriends User"}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Bank:</span>
-                    <span className="text-sm font-medium">{monnifyVA.bankName}</span>
+                    <span className="text-xs text-muted-foreground">Number:</span>
+                    <span className="text-sm font-bold">{monnifyVA.accountNumber}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Fees:</span>
-                    <span className="text-sm font-medium">{monnifyVA.feesDisplay || "Provider fees apply"}</span>
+                    <span className="text-xs text-muted-foreground">Bank:</span>
+                    <span className="text-xs font-medium">{monnifyVA.bankName}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">BVN/NIN required to generate this account.</p>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">Fees:</span>
+                    <span className="text-xs font-bold text-primary">1.5% (Max ₦2k)</span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -762,19 +765,22 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent>
               {paymentpointVA?.accountNumber ? (
-                <div className="space-y-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-white/60">Name:</span>
+                    <span className="font-medium truncate ml-2">{paymentpointVA.accountName || "UFriends User"}</span>
+                  </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/60">Number:</span>
+                    <span className="text-[11px] text-white/60">Number:</span>
                     <span className="text-sm font-bold tracking-tight">{paymentpointVA.accountNumber}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-white/60">Bank:</span>
-                    <span className="text-sm font-medium">{paymentpointVA.bankName}</span>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-white/60">Bank:</span>
+                    <span className="font-medium">{paymentpointVA.bankName}</span>
                   </div>
-                  <div className="pt-1">
-                    <a href="https://paymentpoint.gitbook.io/paymentpoint.co" target="_blank" rel="noreferrer" className="text-[10px] text-blue-300 hover:text-blue-200 transition-colors">
-                      View Fees & Limits
-                    </a>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-[10px] text-white/60 font-bold uppercase">Fees:</span>
+                    <span className="text-xs font-bold text-blue-300">0.5% (Max ₦50)</span>
                   </div>
                 </div>
               ) : (

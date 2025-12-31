@@ -24,14 +24,17 @@ export async function GET(req: NextRequest) {
 
     let monnifyAccountNumber = va?.monnifyAccountNumber || va?.accountNumber
     let monnifyBankName = va?.monnifyBankName || va?.bankName || "Moniepoint Microfinance Bank"
+    let monnifyAccountName = va?.monnifyAccountName || ""
+
     let paymentpointAccountNumber = va?.ppAccountNumber
     let paymentpointBankName = va?.ppBankName || "PaymentPoint Partner Bank"
+    let paymentpointAccountName = va?.ppAccountName || ""
 
     // Optional fee display strings (configurable via env)
     const monnifyFeesDisplay =
-      process.env.MONNIFY_VA_FEES_DISPLAY || "Provider fees apply; BVN/NIN required to generate."
+      process.env.MONNIFY_VA_FEES_DISPLAY || "1.5% Fee (Capped at ₦2,000)"
     const paymentpointFeesDisplay =
-      process.env.PAYMENTPOINT_VA_FEES_DISPLAY || "Provider fees apply; see PaymentPoint docs for details."
+      process.env.PAYMENTPOINT_VA_FEES_DISPLAY || "0.5% Fee (Capped at ₦50)"
 
     // If Monnify account is missing, try to create/fetch it (backwards compatibility)
     if (!monnifyAccountNumber) {
@@ -48,6 +51,7 @@ export async function GET(req: NextRequest) {
         })
         monnifyAccountNumber = reserved.accountNumber
         monnifyBankName = reserved.bankName || monnifyBankName
+        monnifyAccountName = displayName
 
         // Persist it
         await prisma.virtualAccount.upsert({
@@ -55,13 +59,15 @@ export async function GET(req: NextRequest) {
           update: {
             monnifyAccountNumber,
             monnifyBankName,
-            accountNumber: monnifyAccountNumber, // Keep legacy field in sync
+            monnifyAccountName,
+            accountNumber: monnifyAccountNumber,
             bankName: monnifyBankName
           },
           create: {
             userId: auth.user.id,
             monnifyAccountNumber,
             monnifyBankName,
+            monnifyAccountName,
             accountNumber: monnifyAccountNumber,
             bankName: monnifyBankName
           },
@@ -73,11 +79,13 @@ export async function GET(req: NextRequest) {
       monnify: {
         bankName: monnifyBankName,
         accountNumber: monnifyAccountNumber,
+        accountName: monnifyAccountName,
         feesDisplay: monnifyFeesDisplay,
       },
       paymentpoint: {
         bankName: paymentpointBankName,
         accountNumber: paymentpointAccountNumber,
+        accountName: paymentpointAccountName,
         feesDisplay: paymentpointFeesDisplay,
       },
     })

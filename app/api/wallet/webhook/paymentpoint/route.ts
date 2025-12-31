@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
 
     if (status === "SUCCESS") {
       if (payment.status !== "SUCCESS") {
+        // Calculate fee: 0.5% capped at 50 NGN
+        const fee = Math.min(amount * 0.005, 50)
+        const creditAmount = amount - fee
+
         await prisma.$transaction([
           prisma.payment.update({
             where: { id: payment.id },
@@ -35,12 +39,12 @@ export async function POST(req: NextRequest) {
           }),
           prisma.wallet.upsert({
             where: { userId: payment.userId },
-            update: { balance: { increment: amount } },
-            create: { userId: payment.userId, balance: amount, currency: "NGN" },
+            update: { balance: { increment: creditAmount } },
+            create: { userId: payment.userId, balance: creditAmount, currency: "NGN" },
           }),
           prisma.transaction.update({
             where: { reference },
-            data: { status: "SUCCESS", meta: { provider: "PaymentPoint" } },
+            data: { status: "SUCCESS", meta: { provider: "PaymentPoint", grossAmount: amount, fee, netAmount: creditAmount } },
           }),
           prisma.auditLog.create({
             data: {
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
               action: "WALLET_FUND_SUCCESS",
               resourceType: "Payment",
               resourceId: payment.id,
-              diffJson: { amount, reference, provider: "PaymentPoint" },
+              diffJson: { amount: creditAmount, grossAmount: amount, fee, reference, provider: "PaymentPoint" },
             },
           }),
         ])

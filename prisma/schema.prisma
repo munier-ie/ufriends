@@ -430,11 +430,13 @@ model VirtualAccount {
   // Monnify Details
   monnifyAccountNumber String? @unique
   monnifyBankName      String? @default("Moniepoint Microfinance Bank")
+  monnifyAccountName   String?
   monnifyAccountReference String?
   
   // PaymentPoint Details
   ppAccountNumber String? @unique
   ppBankName      String?
+  ppAccountName   String?
   ppAccountReference String?
   
   // Legacy field (deprecated but kept for compatibility during transition)

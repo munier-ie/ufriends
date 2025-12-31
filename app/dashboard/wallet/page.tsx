@@ -477,6 +477,10 @@ export default function WalletPage() {
               {monnifyVA ? (
                 <>
                   <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Account Name</p>
+                    <p className="font-semibold">{monnifyVA.accountName || "UFriends User"}</p>
+                  </div>
+                  <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Account Number</p>
                     <p className="font-semibold text-lg">{monnifyVA.accountNumber}</p>
                   </div>
@@ -485,10 +489,9 @@ export default function WalletPage() {
                     <p className="font-semibold">{monnifyVA.bankName}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Fees</p>
-                    <p className="font-semibold text-sm">{monnifyVA.feesDisplay || "Provider fees apply"}</p>
+                    <p className="text-sm text-muted-foreground">Calculated Fees</p>
+                    <p className="font-semibold text-sm text-[#3457D5]">1.5% (Max ₦2,000)</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">BVN/NIN required to generate this account.</p>
                 </>
               ) : (
                 <p className="text-sm text-muted-foreground">Not available yet</p>
@@ -520,6 +523,10 @@ export default function WalletPage() {
               {paymentpointVA?.accountNumber ? (
                 <>
                   <div className="space-y-1">
+                    <p className="text-xs text-white/60 uppercase tracking-wider">Account Name</p>
+                    <p className="font-semibold">{paymentpointVA.accountName || "UFriends User"}</p>
+                  </div>
+                  <div className="space-y-1">
                     <p className="text-xs text-white/60 uppercase tracking-wider">Account Number</p>
                     <p className="font-bold text-2xl tracking-tight">{paymentpointVA.accountNumber}</p>
                   </div>
@@ -530,30 +537,23 @@ export default function WalletPage() {
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-white/60 uppercase tracking-wider">Fees</p>
-                      <p className="font-semibold text-sm">Provider Rates</p>
+                      <p className="font-bold text-sm text-blue-300">0.5% (Max ₦50)</p>
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">
                     <Button
                       variant="secondary"
                       size="sm"
-                      className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                      className="w-full bg-white/10 hover:bg-white/20 border-white/20 text-white"
                       onClick={() => handleCopyDetails("paymentpoint")}
                     >
                       <Copy className="h-3 w-3 mr-2" />
-                      Copy
+                      Copy Details
                     </Button>
-                    <a
-                      href="https://paymentpoint.gitbook.io/paymentpoint.co"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white h-8 px-3 flex-1"
-                    >
-                      Fees info
-                    </a>
                   </div>
                 </>
               ) : (
+                // ... (Creation block remains same)
                 <div className="py-2 space-y-4">
                   <div className="p-3 bg-white/5 rounded-lg border border-white/10">
                     <p className="text-sm text-white/80 leading-relaxed">

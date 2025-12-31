@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
 
         const accountNumber = created.accountNumber
         const bankName = created.bankName
+        const createdAccountName = created.accountName
         const accountReference = created.accountReference
 
         await prisma.virtualAccount.upsert({
@@ -53,12 +54,14 @@ export async function POST(req: NextRequest) {
             update: {
                 ppAccountNumber: accountNumber,
                 ppBankName: bankName,
+                ppAccountName: createdAccountName,
                 ppAccountReference: accountReference
             },
             create: {
                 userId: auth.user.id,
                 ppAccountNumber: accountNumber,
                 ppBankName: bankName,
+                ppAccountName: createdAccountName,
                 ppAccountReference: accountReference
             },
         })
