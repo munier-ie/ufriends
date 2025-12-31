@@ -25,12 +25,22 @@ export function CameraCapture({ onCapture, capturedImage }: CameraCaptureProps) 
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
 
   useEffect(() => {
+    // Auto-start camera on mount
+    startCamera()
+
     return () => {
       if (stream) {
         stream.getTracks().forEach((track) => track.stop())
       }
     }
-  }, [stream])
+  }, [])
+
+  // Update video srcObject when stream or camera becomes active
+  useEffect(() => {
+    if (stream && videoRef.current && isCameraActive) {
+      videoRef.current.srcObject = stream
+    }
+  }, [stream, isCameraActive])
 
   const enumerateCameras = async () => {
     try {
@@ -58,12 +68,9 @@ export function CameraCapture({ onCapture, capturedImage }: CameraCaptureProps) 
 
       const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-        setStream(mediaStream)
-        setIsCameraActive(true)
-        setLivenessStep("smile")
-      }
+      setStream(mediaStream)
+      setIsCameraActive(true)
+      setLivenessStep("smile")
 
       await enumerateCameras()
     } catch (error: any) {
@@ -72,12 +79,9 @@ export function CameraCapture({ onCapture, capturedImage }: CameraCaptureProps) 
       // Attempt a safe fallback without constraints
       try {
         const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-        if (videoRef.current) {
-          videoRef.current.srcObject = fallbackStream
-          setStream(fallbackStream)
-          setIsCameraActive(true)
-          setLivenessStep("smile")
-        }
+        setStream(fallbackStream)
+        setIsCameraActive(true)
+        setLivenessStep("smile")
         await enumerateCameras()
         return
       } catch (fallbackErr: any) {
@@ -216,10 +220,10 @@ export function CameraCapture({ onCapture, capturedImage }: CameraCaptureProps) 
                   <RefreshCw className="mr-2 h-5 w-5" />
                   Try Again
                 </Button>
-                <Button 
-                  onClick={() => window.location.reload()} 
-                  variant="outline" 
-                  size="lg" 
+                <Button
+                  onClick={() => window.location.reload()}
+                  variant="outline"
+                  size="lg"
                   className="w-full bg-transparent border-gray-600 text-gray-300 hover:bg-gray-800"
                 >
                   Refresh Page
