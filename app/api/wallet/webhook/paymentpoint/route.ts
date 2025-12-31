@@ -4,11 +4,18 @@ import { verifyPaymentPointSignature, getPPReference, getPPStatus, getPPAmount }
 
 export async function POST(req: NextRequest) {
   try {
-    const secret = process.env.PAYMENTPOINT_WEBHOOK_SECRET || process.env.PAYMENTPOINT_KEY || ""
+    const secret = process.env.PAYMENTPOINT_WEBHOOK_SECRET ||
+      process.env.PAYMENTPOINT_SECRET_KEY ||
+      process.env.PAYMENTPOINT_API_SECRET ||
+      process.env.PAYMENTPOINT_KEY || ""
     const raw = await req.text()
-    const signature = req.headers.get("x-paymentpoint-signature") || req.headers.get("paymentpoint-signature") || req.headers.get("x-signature")
+    const signature = req.headers.get("x-paymentpoint-signature") ||
+      req.headers.get("paymentpoint-signature") ||
+      req.headers.get("x-signature") ||
+      req.headers.get("signature")
 
     if (!secret || !verifyPaymentPointSignature(raw, signature, secret)) {
+      console.error("PaymentPoint Webhook: Invalid signature or missing secret")
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 })
     }
 
@@ -21,10 +28,60 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing reference" }, { status: 400 })
     }
 
-    const payment = await prisma.payment.findUnique({ where: { reference } })
+    let payment = await prisma.payment.findUnique({ where: { reference } })
+
+    // If no payment record found, it might be a direct transfer to a reserved account
     if (!payment) {
-      return NextResponse.json({ ok: true })
+      // Look for a VirtualAccount mapping to this reference or accountNumber in the body
+      const vaAccountNum = body?.accountNumber || body?.bankAccount?.accountNumber || (Array.isArray(body?.bankAccounts) ? body.bankAccounts[0]?.accountNumber : null)
+
+      const va = await prisma.virtualAccount.findFirst({
+        where: {
+          OR: [
+            { ppAccountReference: reference },
+            { ppAccountNumber: String(vaAccountNum || "NEVER_MATCH") }
+          ]
+        }
+      })
+
+      if (va) {
+        // Idempotent creation of payment and transaction
+        payment = await prisma.payment.upsert({
+          where: { reference },
+          update: { webhookPayload: body },
+          create: {
+            userId: va.userId,
+            amount: amount,
+            reference: reference,
+            provider: "PaymentPoint",
+            status: "PENDING",
+            type: "WALLET_FUND",
+            webhookPayload: body
+          }
+        })
+
+        await prisma.transaction.upsert({
+          where: { reference },
+          update: { meta: { provider: "PaymentPoint", isDirectTransfer: true } },
+          create: {
+            userId: va.userId,
+            amount: amount,
+            reference: reference,
+            type: "WALLET_FUND_CREDIT",
+            status: "PENDING",
+            description: "Direct Bank Transfer (PaymentPoint)",
+            meta: { provider: "PaymentPoint", isDirectTransfer: true }
+          }
+        }).catch(() => { })
+      }
     }
+
+    if (!payment) {
+      console.warn(`PaymentPoint Webhook: No user or payment found for reference ${reference}`)
+      return NextResponse.json({ ok: true }) // Accept to stop retries if we can't map it
+    }
+
+    const userId = payment.userId
 
     if (status === "SUCCESS") {
       if (payment.status !== "SUCCESS") {

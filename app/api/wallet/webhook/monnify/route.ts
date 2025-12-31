@@ -21,11 +21,58 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing reference" }, { status: 400 })
     }
 
-    const payment = await prisma.payment.findUnique({ where: { reference } })
+    let payment = await prisma.payment.findUnique({ where: { reference } })
+
     if (!payment) {
-      // Unknown reference; ignore gracefully to avoid leaking information
+      // Monnify direct transfers usually have the accountReference in the body
+      // or we can look up by the paymentReference/accountNumber
+      const accountNumber = body?.destAccountNumber || body?.accountNumber
+      const va = await prisma.virtualAccount.findFirst({
+        where: {
+          OR: [
+            { monnifyAccountReference: reference },
+            { monnifyAccountNumber: String(accountNumber || "NEVER_MATCH") }
+          ]
+        }
+      })
+
+      if (va) {
+        payment = await prisma.payment.upsert({
+          where: { reference },
+          update: { webhookPayload: body },
+          create: {
+            userId: va.userId,
+            amount: amount,
+            reference: reference,
+            provider: "Monnify",
+            status: "PENDING",
+            type: "WALLET_FUND",
+            webhookPayload: body
+          }
+        })
+
+        await prisma.transaction.upsert({
+          where: { reference },
+          update: { meta: { provider: "Monnify", isDirectTransfer: true } },
+          create: {
+            userId: va.userId,
+            amount: amount,
+            reference: reference,
+            type: "WALLET_FUND_CREDIT",
+            status: "PENDING",
+            description: "Direct Bank Transfer (Monnify)",
+            meta: { provider: "Monnify", isDirectTransfer: true }
+          }
+        }).catch(() => { })
+      }
+    }
+
+    if (!payment) {
+      console.warn(`Monnify Webhook: No user or payment found for reference ${reference}`)
       return NextResponse.json({ ok: true })
     }
+
+    const userId = payment.userId
 
     if (status === "SUCCESS") {
       if (payment.status !== "SUCCESS") {

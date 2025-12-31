@@ -80,7 +80,7 @@ export default function WalletPage() {
 
       // Load both virtual account details
       try {
-        const res = await authFetch("/api/wallet/virtual-account")
+        const res = await authFetch("/api/wallet/virtual-accounts")
         const data = await res.json()
         if (res.ok) {
           if (data?.monnify?.accountNumber) {

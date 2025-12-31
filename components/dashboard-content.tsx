@@ -315,7 +315,7 @@ export function DashboardContent() {
     // Fetch virtual bank details from API (dual providers)
     const loadBankDetails = async () => {
       try {
-        const res = await authFetch("/api/wallet/virtual-account")
+        const res = await authFetch("/api/wallet/virtual-accounts")
         if (res.ok) {
           const data = await res.json()
           if (data?.monnify?.accountNumber && data?.monnify?.bankName) {
