@@ -17,6 +17,16 @@ export async function POST(req: NextRequest) {
     const status = (getWebhookStatus(body) || "").toUpperCase()
     const amount = getWebhookAmount(body)
 
+    // Log to Database
+    await prisma.auditLog.create({
+      data: {
+        action: "MONNIFY_WEBHOOK_RECEIVED",
+        resourceType: "Webhook",
+        resourceId: reference,
+        diffJson: body
+      }
+    }).catch(() => { })
+
     if (!reference) {
       return NextResponse.json({ error: "Missing reference" }, { status: 400 })
     }

@@ -24,8 +24,15 @@ export async function POST(req: NextRequest) {
     const status = (getPPStatus(body) || "").toUpperCase()
     const amount = getPPAmount(body)
 
-    console.log(`[Webhook Debug] PaymentPoint: status=${status}, ref=${reference}, amt=${amount}`)
-    console.log(`[Webhook Debug] Raw Body: ${raw}`)
+    // Log to Database for retrieval without terminal access
+    await prisma.auditLog.create({
+      data: {
+        action: "PAYMENTPOINT_WEBHOOK_RECEIVED",
+        resourceType: "Webhook",
+        resourceId: reference,
+        diffJson: body
+      }
+    }).catch(() => { })
 
     if (!reference) {
       console.warn("[Webhook Debug] Missing reference in payload")
