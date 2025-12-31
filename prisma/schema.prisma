@@ -426,8 +426,21 @@ model VirtualAccount {
   id            String   @id @default(cuid())
   user          User     @relation(fields: [userId], references: [id])
   userId        String   @unique
-  accountNumber String   @unique
-  bankName      String   @default("Moniepoint Microfinance Bank")
+  
+  // Monnify Details
+  monnifyAccountNumber String? @unique
+  monnifyBankName      String? @default("Moniepoint Microfinance Bank")
+  monnifyAccountReference String?
+  
+  // PaymentPoint Details
+  ppAccountNumber String? @unique
+  ppBankName      String?
+  ppAccountReference String?
+  
+  // Legacy field (deprecated but kept for compatibility during transition)
+  accountNumber String?  @unique
+  bankName      String?  @default("Moniepoint Microfinance Bank")
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

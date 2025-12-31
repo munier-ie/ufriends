@@ -133,13 +133,13 @@ export default function WalletPage() {
               amount: Number(t.amount || 0),
               type: isCredit ? "credit" : "debit",
               status: (statusLower === "success" || statusLower === "failed" || statusLower === "pending")
-                ? (statusLower as Transaction["status"]) 
+                ? (statusLower as Transaction["status"])
                 : "pending",
             }
           })
           setTransactions(mapped)
         }
-      } catch {}
+      } catch { }
 
       setIsLoading(false)
     }, 1000)
@@ -147,13 +147,38 @@ export default function WalletPage() {
 
   const handleCopyDetails = (provider: "monnify" | "paymentpoint") => {
     const va = provider === "monnify" ? monnifyVA : paymentpointVA
-    if (!va) {
+    if (!va || !va.accountNumber) {
       toast.error("Virtual account not available yet")
       return
     }
     const details = `Account Name: ${va.accountName || "UFriends User"}\nAccount Number: ${va.accountNumber}\nBank: ${va.bankName}`
     navigator.clipboard.writeText(details)
     toast.success("Bank details copied to clipboard!")
+  }
+
+  const handleCreatePaymentPointAccount = async () => {
+    try {
+      setIsLoading(true)
+      const res = await authFetch("/api/wallet/virtual-account/create", {
+        method: "POST",
+      })
+      const data = await res.json()
+      if (res.ok && data.virtualAccount) {
+        setPaymentpointVA({
+          accountNumber: data.virtualAccount.accountNumber,
+          bankName: data.virtualAccount.bankName,
+          accountName: accountName || "UFriends User",
+          feesDisplay: "Provider fees apply; see docs.",
+        })
+        toast.success("PaymentPoint virtual account created successfully!")
+      } else {
+        throw new Error(data.error || "Failed to create virtual account")
+      }
+    } catch (err) {
+      toast.error(String(err))
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleFundWallet = async () => {
@@ -329,7 +354,7 @@ export default function WalletPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   {/* Show Monnify reserved account details when bank transfer is selected */}
                   {paymentMethod === "bank-transfer" && (
                     <div className="space-y-3 p-4 bg-muted/50 rounded-lg border">
@@ -479,46 +504,72 @@ export default function WalletPage() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-[#3457D5]">Virtual Account</CardTitle>
-              <CardDescription>Alternative funding via reserved account</CardDescription>
+          <Card className="overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#003366] to-[#004080] text-white">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-white/90">Virtual Account</CardTitle>
+                  <CardDescription className="text-white/60">PaymentPoint Provider</CardDescription>
+                </div>
+                <div className="bg-white/10 p-2 rounded-full">
+                  <Wallet className="h-5 w-5 text-blue-300" />
+                </div>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {paymentpointVA ? (
+            <CardContent className="space-y-4">
+              {paymentpointVA?.accountNumber ? (
                 <>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Account Number</p>
-                    <p className="font-semibold text-lg">{paymentpointVA.accountNumber}</p>
+                    <p className="text-xs text-white/60 uppercase tracking-wider">Account Number</p>
+                    <p className="font-bold text-2xl tracking-tight">{paymentpointVA.accountNumber}</p>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Bank</p>
-                    <p className="font-semibold">{paymentpointVA.bankName}</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <p className="text-xs text-white/60 uppercase tracking-wider">Bank Name</p>
+                      <p className="font-semibold text-sm">{paymentpointVA.bankName}</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-xs text-white/60 uppercase tracking-wider">Fees</p>
+                      <p className="font-semibold text-sm">Provider Rates</p>
+                    </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Fees</p>
-                    <p className="font-semibold text-sm">{paymentpointVA.feesDisplay || "Provider fees apply"}</p>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="flex-1 bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                      onClick={() => handleCopyDetails("paymentpoint")}
+                    >
+                      <Copy className="h-3 w-3 mr-2" />
+                      Copy
+                    </Button>
+                    <a
+                      href="https://paymentpoint.gitbook.io/paymentpoint.co"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white h-8 px-3 flex-1"
+                    >
+                      Fees info
+                    </a>
                   </div>
-                  <a
-                    href="https://paymentpoint.gitbook.io/paymentpoint.co"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-xs text-blue-600"
-                  >
-                    View PaymentPoint fees
-                  </a>
                 </>
               ) : (
-                <p className="text-sm text-muted-foreground">Not available yet</p>
+                <div className="py-2 space-y-4">
+                  <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                    <p className="text-sm text-white/80 leading-relaxed">
+                      Automatically generate a dedicated bank account to fund your wallet instantly via transfer.
+                    </p>
+                  </div>
+                  <Button
+                    className="w-full bg-[#3457D5] hover:bg-[#3457D5]/90 text-white shadow-lg shadow-blue-900/20"
+                    onClick={handleCreatePaymentPointAccount}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Creating..." : "Create Account Now"}
+                    {!isLoading && <Plus className="ml-2 h-4 w-4" />}
+                  </Button>
+                </div>
               )}
-              <Button
-                variant="link"
-                className="text-sm text-[#3457D5] p-0 h-auto gap-2"
-                onClick={() => handleCopyDetails("paymentpoint")}
-              >
-                <Copy className="h-4 w-4" />
-                Copy Details
-              </Button>
             </CardContent>
           </Card>
         </div>
