@@ -5,15 +5,15 @@ import arcjet, { shield, detectBot } from "@arcjet/next"
 
 const aj = process.env.ARCJET_KEY
   ? arcjet({
-      key: process.env.ARCJET_KEY!,
-      rules: [
-        shield({ mode: "LIVE" }),
-        detectBot({ mode: "LIVE", allow: [] }),
-      ],
-    })
+    key: process.env.ARCJET_KEY!,
+    rules: [
+      shield({ mode: "LIVE" }),
+      detectBot({ mode: "LIVE", allow: [] }),
+    ],
+  })
   : null
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl
 
   // First apply Arcjet protections
@@ -23,7 +23,7 @@ export async function proxy(req: NextRequest) {
       if (decision?.isDenied?.()) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 })
       }
-    } catch {}
+    } catch { }
   }
 
   // NextAuth token (for page guards and accepted for APIs)
@@ -40,6 +40,11 @@ export async function proxy(req: NextRequest) {
   }
 
   // API guards: require NextAuth session OR Bearer access token
+  // EXCEPT for webhooks which handle their own security
+  if (pathname.startsWith("/api/wallet/webhook")) {
+    return NextResponse.next()
+  }
+
   if (pathname.startsWith("/api/admin") || pathname.startsWith("/api/wallet")) {
     if (sessionToken) return NextResponse.next()
     const authHeader = req.headers.get("authorization") || ""
@@ -48,7 +53,7 @@ export async function proxy(req: NextRequest) {
       try {
         await verifyAccessToken(bearer)
         return NextResponse.next()
-      } catch {}
+      } catch { }
     }
     return NextResponse.json({ error: "Authentication required", code: "UNAUTHORIZED" }, { status: 401 })
   }
