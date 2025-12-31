@@ -56,7 +56,7 @@ export async function paymentPointCreateVirtualAccount(input: {
     email: input.email,
     name: input.name,
     phoneNumber: input.phoneNumber,
-    bankCode: input.bankCode || "29046",
+    bankCode: input.bankCode || "20946",
     businessId: input.businessId,
   }
   const res = await fetch(`${base}/createVirtualAccount`, {

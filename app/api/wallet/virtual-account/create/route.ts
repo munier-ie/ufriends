@@ -78,10 +78,14 @@ export async function POST(req: NextRequest) {
             virtualAccount: { accountNumber, bankName }
         })
     } catch (err) {
-        console.error("Manual PaymentPoint VA creation failed:", err)
+        console.error("Manual PaymentPoint VA creation error details:", {
+            message: err instanceof Error ? err.message : String(err),
+            stack: err instanceof Error ? err.stack : undefined,
+            error: err
+        })
         return NextResponse.json({
             error: "Failed to create virtual account",
-            detail: String(err)
+            detail: err instanceof Error ? err.message : String(err)
         }, { status: 500 })
     }
 }
