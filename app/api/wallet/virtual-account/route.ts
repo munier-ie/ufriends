@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
 
     try {
       const va = await prisma.virtualAccount.findUnique({ where: { userId: auth.user.id } })
-      accountNumber = va?.accountNumber
-      bankName = va?.bankName || bankName
+      accountNumber = va?.monnifyAccountNumber || va?.accountNumber || va?.ppAccountNumber
+      bankName = (va?.monnifyAccountNumber ? va?.monnifyBankName : (va?.ppAccountNumber ? va?.ppBankName : (va?.bankName || bankName))) || bankName
 
       if (!accountNumber) {
         // Build Monnify reserved account request
@@ -58,8 +58,19 @@ export async function GET(req: NextRequest) {
 
         await prisma.virtualAccount.upsert({
           where: { userId: auth.user.id },
-          update: { accountNumber, bankName },
-          create: { userId: auth.user.id, accountNumber, bankName },
+          update: {
+            monnifyAccountNumber: accountNumber,
+            monnifyBankName: bankName,
+            accountNumber,
+            bankName
+          },
+          create: {
+            userId: auth.user.id,
+            monnifyAccountNumber: accountNumber,
+            monnifyBankName: bankName,
+            accountNumber,
+            bankName
+          },
         })
         wasCreated = true
       }
@@ -72,7 +83,7 @@ export async function GET(req: NextRequest) {
           resourceId: accountNumber,
           diffJson: { accountNumber, bankName, wasCreated },
         },
-      }).catch(() => {})
+      }).catch(() => { })
     } catch {
       // Fallback to PaymentPoint virtual account creation
       try {
@@ -89,8 +100,8 @@ export async function GET(req: NextRequest) {
 
         await prisma.virtualAccount.upsert({
           where: { userId: auth.user.id },
-          update: { accountNumber, bankName },
-          create: { userId: auth.user.id, accountNumber, bankName },
+          update: { ppAccountNumber: accountNumber, ppBankName: bankName },
+          create: { userId: auth.user.id, ppAccountNumber: accountNumber, ppBankName: bankName },
         })
 
         await prisma.auditLog
@@ -103,7 +114,7 @@ export async function GET(req: NextRequest) {
               diffJson: { accountNumber, bankName, wasCreated: true },
             },
           })
-          .catch(() => {})
+          .catch(() => { })
       } catch {
         // Final fallback: derive deterministic account number
         accountNumber = deriveVirtualAccountNumber(auth.user.id)
@@ -122,7 +133,7 @@ export async function GET(req: NextRequest) {
               diffJson: { accountNumber, bankName, wasCreated: true },
             },
           })
-          .catch(() => {})
+          .catch(() => { })
       }
     }
 
