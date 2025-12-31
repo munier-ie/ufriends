@@ -139,6 +139,11 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ ok: true, virtualAccount: { accountNumber, bankName } })
   } catch (err) {
-    return NextResponse.json({ error: "Failed to fetch virtual account", detail: String(err) }, { status: 500 })
+    console.error("GET virtual-account error:", err)
+    return NextResponse.json({
+      error: "Failed to fetch virtual account",
+      detail: String(err),
+      location: "api/wallet/virtual-account"
+    }, { status: 500 })
   }
 }
