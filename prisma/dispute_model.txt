@@ -1,0 +1,23 @@
+
+model Dispute {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  reference     String?  // Optional transaction reference
+  service       String   // e.g., "BVN", "NIN", "Wallet"
+  issue         String   // Description of the issue
+  status        DisputeStatus @default(OPEN)
+  adminNotes    String?
+  screenshotUrl String?
+  assignedTo    String?  // Admin ID or Name
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  ESCALATED
+  CLOSED
+}

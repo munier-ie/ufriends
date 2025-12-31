@@ -1,0 +1,166 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Updated color tokens to match UFriends brand colors */
+  --background: #f9f7f3; /* Bone White */
+  --foreground: #2c3e50; /* Dark Slate */
+  --card: #ffffff; /* Pure White for cards */
+  --card-foreground: #2c3e50; /* Dark Slate */
+  --popover: #ffffff; /* Pure White */
+  --popover-foreground: #2c3e50; /* Dark Slate */
+  --primary: #3457d5; /* Byzantine Blue */
+  --primary-foreground: #ffffff; /* White for primary text */
+  --secondary: #ccccff; /* Periwinkle */
+  --secondary-foreground: #2c3e50; /* Dark Slate */
+  --muted: #f0f4f8; /* Light Background */
+  --muted-foreground: #6b7280; /* Muted text */
+  --accent: #ccccff; /* Periwinkle for accents */
+  --accent-foreground: #2c3e50; /* Dark Slate */
+  --destructive: #e63946; /* Red for alerts */
+  --destructive-foreground: #ffffff; /* White for alert text */
+  --border: #e5e7eb; /* Light border */
+  --input: #ffffff; /* Input fields */
+  --ring: rgba(52, 87, 213, 0.2); /* Byzantine Blue ring for focus states */
+  --chart-1: #3457d5; /* Byzantine Blue */
+  --chart-2: #ccccff; /* Periwinkle */
+  --chart-3: #2c3e50; /* Dark Slate */
+  --chart-4: #f0f4f8; /* Light Background */
+  --chart-5: #e63946; /* Red */
+  --radius: 0.625rem;
+  --sidebar: #ffffff; /* Sidebar background */
+  --sidebar-foreground: #2c3e50; /* Sidebar text */
+  --sidebar-primary: #3457d5; /* Byzantine Blue */
+  --sidebar-primary-foreground: #ffffff; /* White */
+  --sidebar-accent: #ccccff; /* Periwinkle */
+  --sidebar-accent-foreground: #2c3e50; /* Dark Slate */
+  --sidebar-border: #e5e7eb; /* Sidebar border */
+  --sidebar-ring: rgba(52, 87, 213, 0.2); /* Byzantine Blue ring */
+}
+
+.dark {
+  --background: #1a1a1a; /* Dark background */
+  --foreground: #ffffff; /* White text */
+  --card: #2a2a2a; /* Dark card */
+  --card-foreground: #ffffff; /* White card text */
+  --popover: #2a2a2a; /* Dark popover */
+  --popover-foreground: #ffffff; /* White popover text */
+  --primary: #4f6bdb; /* Lighter Byzantine Blue for dark mode */
+  --primary-foreground: #ffffff; /* White */
+  --secondary: #3a3a4a; /* Dark secondary */
+  --secondary-foreground: #ffffff; /* White */
+  --muted: #3a3a4a; /* Dark muted */
+  --muted-foreground: #a1a1aa; /* Light muted text */
+  --accent: #3a3a4a; /* Dark accent */
+  --accent-foreground: #ffffff; /* White */
+  --destructive: #dc2626; /* Red for dark mode */
+  --destructive-foreground: #ffffff; /* White */
+  --border: #3a3a4a; /* Dark border */
+  --input: #2a2a2a; /* Dark input */
+  --ring: rgba(79, 107, 219, 0.3); /* Lighter ring for dark mode */
+  --chart-1: #4f6bdb; /* Lighter Byzantine Blue */
+  --chart-2: #8b8bff; /* Lighter Periwinkle */
+  --chart-3: #ffffff; /* White */
+  --chart-4: #3a3a4a; /* Dark */
+  --chart-5: #dc2626; /* Red */
+  --sidebar: #1a1a1a; /* Dark sidebar */
+  --sidebar-foreground: #ffffff; /* White sidebar text */
+  --sidebar-primary: #4f6bdb; /* Lighter Byzantine Blue */
+  --sidebar-primary-foreground: #ffffff; /* White */
+  --sidebar-accent: #3a3a4a; /* Dark accent */
+  --sidebar-accent-foreground: #ffffff; /* White */
+  --sidebar-border: #3a3a4a; /* Dark border */
+  --sidebar-ring: rgba(79, 107, 219, 0.3); /* Lighter ring */
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Added crosshatch background pattern */
+  .crosshatch-bg {
+    background-image: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(52, 87, 213, 0.03) 2px,
+        rgba(52, 87, 213, 0.03) 4px
+      ),
+      repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 2px,
+        rgba(52, 87, 213, 0.03) 2px,
+        rgba(52, 87, 213, 0.03) 4px
+      );
+  }
+
+  /* Updated custom scrollbar styling to match specification */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Hide scrollbar on mobile */
+  @media (max-width: 768px) {
+    .custom-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}

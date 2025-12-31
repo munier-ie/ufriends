@@ -1,0 +1,186 @@
+🏗️ Build Full Backend for “UFriends Information Technology” Platform
+________________________________________
+🧩 Overview
+You are building the backend for UFriends Information Technology, a multi-service platform offering:
+•	BVN/NIN/CAC Verification
+•	Airtime, Data, and Bill Payments
+•	Education Pins (WAEC, NECO, NABTEB, JAMB, etc.)
+•	Agency Banking
+•	Software Development
+•	Marketer & Admin Control System
+The backend should use Next.js API routes (or Express) with PostgreSQL as the main database and Prisma ORM for modeling.
+All code must follow clean modular architecture, security best practices, and modern validation.
+________________________________________
+⚙️ Tech Stack & Tools
+Layer	Tools
+Database	PostgreSQL + Prisma ORM
+Validation	Zod + zod-xss-sanitizer + Joi (optional)
+Rate Limiting	Arcjet
+Authentication	JWT (Access + Refresh)
+Input Sanitization	zod-xss-sanitizer
+File Upload	Cloudinary SDK
+PDF/Image Generation	node-canvas + pdf-lib + sharp
+Payment Gateways	Monnify + PaymentPoint
+Provider APIs	Prembly, SubAndGain, MaskawaSub
+Environment Management	dotenv
+Error Handling	Middleware + structured logging
+________________________________________
+🔐 Modules to Implement
+1️⃣ Authentication & User Management
+•	User signup, login, logout
+•	OTP Email Verification (not link)
+•	Password hashing with bcrypt
+•	Role-based access: user, marketer, admin
+•	Arcjet rate limit on signup/login
+•	Zod validation for input sanitization
+API Routes
+POST /api/auth/signup
+POST /api/auth/verify-otp
+POST /api/auth/login
+POST /api/auth/logout
+GET  /api/auth/me
+________________________________________
+2️⃣ KYC Module (Lightweight)
+•	User chooses NIN or BVN for verification
+•	Uploads live selfie photo (captured via frontend)
+•	Backend saves data, sets status = pending
+•	Admin approves/rejects manually
+•	KYC is required for Verification & Airtime2Cash services
+API Routes
+POST /api/kyc/submit
+GET  /api/kyc/status
+POST /api/admin/kyc/approve
+POST /api/admin/kyc/reject
+________________________________________
+3️⃣ Wallet System
+•	User wallet auto-created at signup
+•	Fund wallet via Monnify or PaymentPoint
+•	Verify transactions via webhook
+•	Deduct wallet for any service purchase
+•	Refund if service fails
+•	Manual admin credit/debit
+•	Profit calculation via service pricing
+API Routes
+POST /api/wallet/fund
+GET  /api/wallet/balance
+GET  /api/wallet/transactions
+POST /api/wallet/webhook/monnify
+POST /api/admin/wallet/adjust
+GET  /api/admin/wallet/summary
+________________________________________
+4️⃣ Provider Control System
+•	Admin can activate/deactivate any provider
+•	Providers include:
+o	Airtime/Data/Bills → Ported SIM, SubAndGain, MaskawaSub
+o	Verification → Prembly
+o	Wallet → Monnify, PaymentPoint
+•	System must auto-switch if active provider fails
+•	Providers and keys stored in DB, editable from dashboard
+API Routes
+GET  /api/admin/providers
+PATCH /api/admin/providers/:category
+POST /api/admin/providers/:id/api-key
+________________________________________
+5️⃣ Transaction & Service Engine
+•	Centralized system to process all user service requests
+•	Supports all service categories (Airtime, Data, Verification, Education, CAC, etc.)
+•	Deduct wallet, call provider API, log everything
+•	Auto refund on failure
+•	Save profit per transaction
+•	Store provider request & response logs
+API Routes
+POST /api/service/:category/:action
+GET  /api/service/status/:reference
+POST /api/admin/service/retry/:reference
+GET  /api/admin/service/logs/:reference
+________________________________________
+6️⃣ Verification Slip Generator (Image Template System)
+•	Uses admin-uploaded image templates (PNG/JPG)
+•	Backend overlays user data, photo, and QR code on the image
+•	Exports to PDF for download
+•	Templates configurable via admin dashboard
+Flow
+•	Admin uploads base template image
+•	Admin defines coordinate JSON (x, y, fontSize, etc.)
+•	System uses node-canvas to render data on the image
+•	Generates official-looking PDF with watermark/signature
+API Routes
+POST /api/admin/templates/upload
+PATCH /api/admin/templates/:id/positions
+POST /api/verification/generate/:type
+GET  /api/verification/download/:reference
+________________________________________
+7️⃣ Marketer Module
+•	User requests to become marketer (form in /services/agency-banking/marketer)
+•	Admin approves or rejects
+•	Marketer sees discounted prices on all services
+•	Marketer dashboard includes:
+o	Commission tracking
+o	Referral count
+o	Sales performance
+•	Admin can adjust commissions manually
+API Routes
+POST /api/marketer/apply
+GET  /api/marketer/dashboard
+POST /api/admin/marketer/approve
+POST /api/admin/marketer/adjust
+________________________________________
+8️⃣ Admin Dashboard (Core)
+•	Manage users, KYC, wallet, transactions, providers, templates, marketers, and pricing
+•	Dynamic configuration via Settings table
+•	Profit & Loss Reports
+•	Manual service approval (for manual types)
+•	Download/export CSV reports
+Admin Features
+•	Adjust service price
+•	Adjust provider API key
+•	View profit & total revenue
+•	See all wallet inflows/outflows
+•	Approve manual services
+•	Audit logs for every admin action
+________________________________________
+9️⃣ Security Features
+•	Arcjet → Rate limit auth & wallet routes
+•	Zod + zod-xss-sanitizer → Input sanitization
+•	JWT Authentication middleware
+•	Prisma transactions → Prevent double deduction
+•	All file uploads scanned + size limited
+•	Webhook signature validation (Monnify, PaymentPoint)
+•	Admin logs stored in AdminActionLog
+________________________________________
+🔐 Database Models
+Use the Unified Schema (already defined above), which includes:
+•	User, KYCRecord, Wallet, WalletTransaction
+•	Provider, ServiceCategory, ServicePricing
+•	ServiceTransaction, ProviderLog
+•	VerificationTemplate, GeneratedDocument
+•	Marketer, AdminActionLog, Settings
+________________________________________
+🧾 System Behavior Summary
+Event	Action
+User registers	Creates wallet + default role
+User funds wallet	Gateway → webhook → credit
+User buys service	Deduct wallet, log transaction
+Service fails	Refund + mark failed
+Admin changes provider	All future calls switch instantly
+Admin uploads template	Available for next PDF generation
+User requests KYC	Stored pending until admin approval
+Admin credits/debits	Logged in audit table
+Marketer approved	Sees discounted prices instantly
+________________________________________
+🧠 Output Requirements
+•	Modular codebase (auth, wallet, services, admin, etc.)
+•	All routes documented with request/response examples
+•	Include Prisma schema and migration
+•	Include .env.example for all required environment variables:
+•	DATABASE_URL=
+•	JWT_SECRET=
+•	MONNIFY_API_KEY=
+•	PAYMENTPOINT_KEY=
+•	PREMBLY_KEY=
+•	SUBANDGAIN_KEY=
+•	MASKAWASUB_KEY=
+•	CLOUDINARY_URL=
+•	ARCJET_KEY=
+•	Include Postman or OpenAPI (Swagger) route documentation.
+Generate the entire backend for the UFriends Information Technology platform as defined above, ensuring modular structure, secure API routes, and production-ready PostgreSQL database.
