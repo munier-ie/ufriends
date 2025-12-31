@@ -24,7 +24,11 @@ export async function POST(req: NextRequest) {
     const status = (getPPStatus(body) || "").toUpperCase()
     const amount = getPPAmount(body)
 
+    console.log(`[Webhook Debug] PaymentPoint: status=${status}, ref=${reference}, amt=${amount}`)
+    console.log(`[Webhook Debug] Raw Body: ${raw}`)
+
     if (!reference) {
+      console.warn("[Webhook Debug] Missing reference in payload")
       return NextResponse.json({ error: "Missing reference" }, { status: 400 })
     }
 
@@ -43,6 +47,7 @@ export async function POST(req: NextRequest) {
         (Array.isArray(data?.bankAccounts) ? data.bankAccounts[0]?.accountNumber : null) ||
         body?.account_number
 
+      console.log(`[Webhook Debug] Looking up VirtualAccount for ref=${reference} or accountNum=${vaAccountNum}`)
       const va = await prisma.virtualAccount.findFirst({
         where: {
           OR: [
@@ -53,6 +58,7 @@ export async function POST(req: NextRequest) {
       })
 
       if (va) {
+        console.log(`[Webhook Debug] Found user ${va.userId} via VirtualAccount`)
         // Idempotent creation of payment and transaction
         payment = await prisma.payment.upsert({
           where: { reference },
@@ -81,15 +87,18 @@ export async function POST(req: NextRequest) {
             meta: { provider: "PaymentPoint", isDirectTransfer: true }
           }
         }).catch(() => { })
+      } else {
+        console.warn(`[Webhook Debug] No VirtualAccount found for ref=${reference} or accountNum=${vaAccountNum}`)
       }
     }
 
     if (!payment) {
-      console.warn(`PaymentPoint Webhook: No user or payment found for reference ${reference}. Body: ${raw}`)
+      console.warn(`[Webhook Debug] Final Check: No payment/user found. Body: ${raw}`)
       return NextResponse.json({ ok: true })
     }
 
     const userId = payment.userId
+    console.log(`[Webhook Debug] Proceeding with credit for user=${userId}, current_payment_status=${payment.status}`)
 
     if (status === "SUCCESS" || status === "COMPLETED" || status === "TRUE") {
       if (payment.status !== "SUCCESS") {
