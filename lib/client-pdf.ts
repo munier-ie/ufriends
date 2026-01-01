@@ -33,7 +33,7 @@ export async function downloadPdfViaServer(
     blob = await res.blob()
   } catch (e: any) {
     console.error("PDF Blob Error:", e)
-    throw new Error("Failed to process PDF data (Blob)")
+    throw new Error("PDF_BLOB_ERROR")
   }
 
   try {
@@ -50,7 +50,7 @@ export async function downloadPdfViaServer(
     setTimeout(() => URL.revokeObjectURL(url), 2000)
   } catch (e: any) {
     console.error("PDF Download Error:", e)
-    throw new Error("Failed to start download: " + e?.message)
+    throw new Error("PDF_DOWNLOAD_ERROR: " + e?.message)
   }
 }
 
