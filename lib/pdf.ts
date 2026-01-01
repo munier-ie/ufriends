@@ -12,7 +12,7 @@ export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions
     if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
       // Production / Vercel: Use sparticuz/chromium
       // Configure sparticuz options if needed (e.g. graphics)
-      // chromium.setGraphicsMode = false
+      chromium.setGraphicsMode = false
       browser = await puppeteerCore.launch({
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,

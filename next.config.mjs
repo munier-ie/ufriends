@@ -9,6 +9,9 @@ const nextConfig = {
   },
   // Ensure Next.js uses this project as the workspace root
   outputFileTracingRoot: process.cwd(),
+  experimental: {
+    serverComponentsExternalPackages: ['puppeteer-core', '@sparticuz/chromium'],
+  },
   async headers() {
     return [
       {
