@@ -14,12 +14,12 @@ export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions
       // Configure sparticuz options if needed (e.g. graphics)
       chromium.setGraphicsMode = false
       browser = await puppeteerCore.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
+        args: (chromium as any).args,
+        defaultViewport: (chromium as any).defaultViewport,
         executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        headless: (chromium as any).headless,
         ignoreHTTPSErrors: true,
-      })
+      } as any)
     } else {
       // Local development: Use standard puppeteer
       const puppeteer = await import("puppeteer").then((m) => m.default)
