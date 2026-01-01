@@ -11,12 +11,18 @@ export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions
   try {
     if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
       // Production / Vercel: Use sparticuz/chromium
-      // Configure sparticuz options if needed (e.g. graphics)
+      // Configure sparticuz options
       chromium.setGraphicsMode = false
+
+      // Use remote executable to avoid "input directory does not exist" issues on Vercel
+      const executablePath = await chromium.executablePath(
+        "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar"
+      )
+
       browser = await puppeteerCore.launch({
         args: (chromium as any).args,
         defaultViewport: (chromium as any).defaultViewport,
-        executablePath: await chromium.executablePath(),
+        executablePath,
         headless: (chromium as any).headless,
         ignoreHTTPSErrors: true,
       } as any)
