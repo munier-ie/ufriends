@@ -4,6 +4,9 @@ import { prisma } from "@/lib/db"
 import { renderHtmlToPdfBuffer } from "@/lib/pdf"
 import getPrembly from "@/lib/prembly-sdk-adapter"
 
+export const maxDuration = 60 // Increase timeout for Puppeteer
+export const dynamic = 'force-dynamic'
+
 // POST /api/pdf
 // Body: { templateId: string, action: string, params: Record<string, any>, fileName?: string }
 // - templateId: NinTemplate.id (HTML with placeholders like {{firstName}})
