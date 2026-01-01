@@ -95,8 +95,7 @@ export async function POST(req: NextRequest) {
             reference: reference,
             type: "WALLET_FUND_CREDIT",
             status: "PENDING",
-            description: "Direct Bank Transfer (PaymentPoint)",
-            meta: { provider: "PaymentPoint", isDirectTransfer: true }
+            meta: { provider: "PaymentPoint", isDirectTransfer: true, description: "Direct Bank Transfer (PaymentPoint)" }
           }
         }).catch(() => { })
       } else {
