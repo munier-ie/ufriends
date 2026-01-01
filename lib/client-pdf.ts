@@ -18,13 +18,15 @@ export async function downloadPdfViaServer(
     body: JSON.stringify({ templateId, action, params, fileName, data }),
   })
 
-  let msg = "Failed to generate PDF"
-  try {
-    const err = await res.json()
-    // Prefer detail if available for debugging
-    msg = err?.detail || err?.error || msg
-  } catch { }
-  throw new Error(msg)
+  if (!res.ok) {
+    let msg = "Failed to generate PDF"
+    try {
+      const err = await res.json()
+      // Prefer detail if available for debugging
+      msg = err?.detail || err?.error || msg
+    } catch { }
+    throw new Error(msg)
+  }
 
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
