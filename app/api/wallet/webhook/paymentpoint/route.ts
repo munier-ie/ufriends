@@ -80,9 +80,7 @@ export async function POST(req: NextRequest) {
             userId: va.userId,
             amount: amount,
             reference: reference,
-            provider: "PaymentPoint",
             status: "INIT", // Fixed: must be INIT, SUCCESS, or FAILED
-            type: "WALLET_FUND",
             gateway: "PaymentPoint",
             webhookPayload: body
           }
