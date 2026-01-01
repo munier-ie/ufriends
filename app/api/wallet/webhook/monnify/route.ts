@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
             provider: "Monnify",
             status: "INIT", // Fixed enum
             type: "WALLET_FUND",
+            gateway: "Monnify",
             webhookPayload: body
           }
         })
