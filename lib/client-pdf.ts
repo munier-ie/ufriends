@@ -18,14 +18,13 @@ export async function downloadPdfViaServer(
     body: JSON.stringify({ templateId, action, params, fileName, data }),
   })
 
-  if (!res.ok) {
-    let msg = "Failed to generate PDF"
-    try {
-      const err = await res.json()
-      msg = err?.error || msg
-    } catch {}
-    throw new Error(msg)
-  }
+  let msg = "Failed to generate PDF"
+  try {
+    const err = await res.json()
+    // Prefer detail if available for debugging
+    msg = err?.detail || err?.error || msg
+  } catch { }
+  throw new Error(msg)
 
   const blob = await res.blob()
   const url = URL.createObjectURL(blob)
@@ -54,7 +53,7 @@ export async function downloadPdfAuto(
   })
   if (!r.ok) {
     let msg = "Failed to resolve template"
-    try { const j = await r.json(); msg = j?.error || msg } catch {}
+    try { const j = await r.json(); msg = j?.error || msg } catch { }
     throw new Error(msg)
   }
   const j = await r.json()
@@ -77,7 +76,7 @@ export async function downloadPdfAutoWithData(
   })
   if (!r.ok) {
     let msg = "Failed to resolve template"
-    try { const j = await r.json(); msg = j?.error || msg } catch {}
+    try { const j = await r.json(); msg = j?.error || msg } catch { }
     throw new Error(msg)
   }
   const j = await r.json()
