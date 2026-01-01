@@ -1,24 +1,34 @@
-import puppeteer, { PDFOptions } from "puppeteer"
+import { PDFOptions } from "puppeteer-core"
+import chromium from "@sparticuz/chromium"
+import puppeteerCore from "puppeteer-core"
 
 export type RenderPdfOptions = PDFOptions & {
   baseUrl?: string
 }
 
 export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions = {}): Promise<Buffer> {
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-accelerated-2d-canvas",
-      "--no-zygote",
-      "--no-first-run",
-    ],
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
-  })
-
+  let browser = null
   try {
+    if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+      // Production / Vercel: Use sparticuz/chromium
+      // Configure sparticuz options if needed (e.g. graphics)
+      // chromium.setGraphicsMode = false
+      browser = await puppeteerCore.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+        ignoreHTTPSErrors: true,
+      })
+    } else {
+      // Local development: Use standard puppeteer
+      const puppeteer = await import("puppeteer").then((m) => m.default)
+      browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      })
+    }
+
     const page = await browser.newPage()
 
     // Allow relative asset URLs (e.g., /assets/logo.png)
@@ -42,6 +52,6 @@ export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions
     await page.close()
     return Buffer.from(pdf)
   } finally {
-    await browser.close()
+    if (browser) await browser.close()
   }
 }
