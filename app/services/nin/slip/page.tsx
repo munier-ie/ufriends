@@ -40,7 +40,7 @@ export default function NINSlipPage() {
 
   // Use dynamic pricing hook (catalog-based)
   const variantLabel = (slipType || "standard").replace(/^\w/, (c) => c.toUpperCase())
-  const { price, isLoading, error, submitService, reference } = useDynamicPricing("NIN", "Slip", variantLabel)
+  const { price, isLoading, error, submitService, reference } = useDynamicPricing("verification", "nin", variantLabel)
 
   const handleSubmit = async () => {
     if (!isFormValid()) {
