@@ -38,7 +38,7 @@ export async function renderHtmlToPdfBuffer(html: string, opts: RenderPdfOptions
     const page = await browser.newPage()
 
     // Allow relative asset URLs (e.g., /assets/logo.png)
-    const base = opts.baseUrl || process.env.APP_BASE_URL || "http://localhost:5070"
+    const base = opts.baseUrl || process.env.APP_BASE_URL || "https://ufriends.com.ng"
     let htmlToRender = html
     if (/<head[^>]*>/i.test(htmlToRender)) {
       htmlToRender = htmlToRender.replace(/<head[^>]*>/i, (m) => `${m}<base href="${base}">`)

@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
               diffJson: { accountNumber, bankName, wasCreated, fundingReference: reference },
             },
           })
-          .catch(() => {})
+          .catch(() => { })
       } catch {
         // Fallback: derive deterministic account number
         accountNumber = deriveVirtualAccountNumber(auth.user.id)
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
             diffJson: { accountNumber, bankName, wasCreated, fundingReference: reference },
           },
         })
-      } catch {}
+      } catch { }
 
       // Prepare Monnify transaction init input
       const userInfo = await prisma.user.findUnique({
@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
       })
       const customerName = userInfo?.profile?.name || (userInfo?.email?.split("@")[0] || "UFriends User")
       const customerEmail = userInfo?.email || ""
-      const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:5070"}/dashboard/wallet`
+      const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://ufriends.com.ng"}/dashboard/wallet`
 
       const init = await monnifyInitTransaction({
         amount,
