@@ -22,17 +22,17 @@ export type PaymentPointWebhookPayload = {
 
 export function getPPReference(body: PaymentPointWebhookPayload): string | undefined {
   const data = (body?.data || body) as any
-  return data?.reference || data?.payment_reference || data?.txn_ref || data?.transaction_reference
+  return data?.reference || data?.payment_reference || data?.txn_ref || data?.transaction_reference || data?.transaction_id
 }
 
 export function getPPStatus(body: PaymentPointWebhookPayload): string | undefined {
   const data = (body?.data || body) as any
-  return data?.status || data?.payment_status || data?.transaction_status
+  return data?.status || data?.payment_status || data?.transaction_status || data?.notification_status
 }
 
 export function getPPAmount(body: PaymentPointWebhookPayload): number {
   const data = (body?.data || body) as any
-  const val = data?.amount ?? data?.total_amount ?? 0
+  const val = data?.amount ?? data?.total_amount ?? data?.amount_paid ?? 0
   const n = typeof val === "string" ? Number(val) : (val as number)
   return Number.isFinite(n) ? n : 0
 }

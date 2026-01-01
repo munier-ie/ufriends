@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
         data?.destinationAccountNumber ||
         data?.beneficiaryAccountNumber ||
         data?.bankAccount?.accountNumber ||
+        data?.receiver?.account_number ||
         (Array.isArray(data?.bankAccounts) ? data.bankAccounts[0]?.accountNumber : null) ||
         body?.account_number
 
