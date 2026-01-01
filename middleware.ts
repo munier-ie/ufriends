@@ -1,30 +1,11 @@
 import { NextResponse, NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 import { verifyAccessToken } from "@/lib/jwt"
-import arcjet, { shield, detectBot } from "@arcjet/next"
-
-const aj = process.env.ARCJET_KEY
-  ? arcjet({
-    key: process.env.ARCJET_KEY!,
-    rules: [
-      shield({ mode: "LIVE" }),
-      detectBot({ mode: "LIVE", allow: [] }),
-    ],
-  })
-  : null
+// Arcjet protection removed from middleware to save size.
+// APIs should use lib/security.ts for protection.
 
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl
-
-  // First apply Arcjet protections
-  if (aj) {
-    try {
-      const decision: any = await aj.protect(req)
-      if (decision?.isDenied?.()) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-      }
-    } catch { }
-  }
 
   // NextAuth token (for page guards and accepted for APIs)
   const secret = process.env.NEXTAUTH_SECRET
