@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             status: "PENDING",
             meta: { provider: "PaymentPoint", isDirectTransfer: true, description: "Direct Bank Transfer (PaymentPoint)" }
           }
-        }).catch(() => { })
+        })
       } else {
         console.warn(`[Webhook Debug] No VirtualAccount found for ref=${reference} or accountNum=${vaAccountNum}`)
       }
@@ -127,9 +127,17 @@ export async function POST(req: NextRequest) {
             update: { balance: { increment: creditAmount } },
             create: { userId: payment.userId, balance: creditAmount, currency: "NGN" },
           }),
-          prisma.transaction.update({
+          prisma.transaction.upsert({
             where: { reference },
-            data: { status: "SUCCESS", meta: { provider: "PaymentPoint", grossAmount: amount, fee, netAmount: creditAmount } },
+            update: { status: "SUCCESS", meta: { provider: "PaymentPoint", grossAmount: amount, fee, netAmount: creditAmount } },
+            create: {
+              userId: payment.userId,
+              amount: amount,
+              reference: reference,
+              type: "WALLET_FUND_CREDIT",
+              status: "SUCCESS",
+              meta: { provider: "PaymentPoint", grossAmount: amount, fee, netAmount: creditAmount, description: "Direct Bank Transfer (PaymentPoint)" }
+            }
           }),
           prisma.auditLog.create({
             data: {

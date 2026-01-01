@@ -98,9 +98,17 @@ export async function POST(req: NextRequest) {
             update: { balance: { increment: creditAmount } },
             create: { userId: payment.userId, balance: creditAmount, currency: "NGN" },
           }),
-          prisma.transaction.update({
+          prisma.transaction.upsert({
             where: { reference },
-            data: { status: "SUCCESS", meta: { provider: "Monnify", grossAmount: amount, fee, netAmount: creditAmount } },
+            update: { status: "SUCCESS", meta: { provider: "Monnify", grossAmount: amount, fee, netAmount: creditAmount } },
+            create: {
+              userId: payment.userId,
+              amount: amount,
+              reference: reference,
+              type: "WALLET_FUND_CREDIT",
+              status: "SUCCESS",
+              meta: { provider: "Monnify", grossAmount: amount, fee, netAmount: creditAmount, description: "Direct Bank Transfer (Monnify)" }
+            }
           }),
           prisma.auditLog.create({
             data: {
