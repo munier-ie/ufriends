@@ -46,7 +46,7 @@ export default function NINVerificationPage() {
     setShowWarning(true)
   }, [])
 
-  const { price, isLoading, error, submitService } = useDynamicPricing("nin", "slip", slipType)
+  const { price, isLoading, error, submitService } = useDynamicPricing("verification", "nin", slipType)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
