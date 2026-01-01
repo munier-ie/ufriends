@@ -160,14 +160,15 @@ export async function POST(req: NextRequest) {
     const aliases: Record<string, any> = {}
     if (action.startsWith("nin.")) {
       const src = data || {}
+      // Standardize data keys from common provider formats
       const firstName = src.first_name || src.firstname || src.firstName || src.given_names || src.givenNames || src.given_name || ""
       const lastName = src.last_name || src.lastname || src.lastName || src.surname || ""
       const middleName = src.middle_name || src.middlename || src.middleName || src.other_names || src.otherNames || ""
       const givenNames = src.given_names || src.givenNames || [firstName, middleName].filter(Boolean).join(" ")
-      const sex = src.sex || src.gender || ""
       const gender = src.gender || src.sex || ""
-      const nin = src.nin || src.nin_number || src.ninNumber || ""
-      const address = src.address || src.residential_address || src.homeAddress || src.residentialAddress || ""
+      const sex = gender
+      const nin = src.nin || src.nin_number || src.ninNumber || src.idNumber || ""
+      const address = src.address || src.residential_address || src.residence_address || src.homeAddress || src.residentialAddress || ""
       const trackingId = src.tracking_id || src.trackingId || src.nimc_trackingId || ""
       const phoneNumber = src.phone_number || src.phoneNumber || src.msisdn || src.telephoneno || ""
       const residenceState = src.residence_state || src.stateOfResidence || src.residential_state || ""
