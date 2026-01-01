@@ -477,16 +477,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Normalize paths and relative asset URLs to absolute using request origin
+    const origin = req.nextUrl?.origin || process.env.APP_BASE_URL || "https://ufriends.com.ng"
     try {
-      const origin = req.nextUrl?.origin || ""
       if (origin) {
         // Convert any backslashes to forward slashes in HTML paths
         html = html.replace(/\\+/g, "/")
         html = html.replace(/(<img\s+[^>]*src=["'])\/(?!\/)([^"']+)(["'][^>]*>)/gi, `$1${origin}/$2$3`)
+        // Also fix background-image urls
+        html = html.replace(/url\(['"]?\/([^'")]+)['"]?\)/gi, `url('${origin}/$1')`)
       }
     } catch { }
 
-    const pdf = await renderHtmlToPdfBuffer(html)
+    const pdf = await renderHtmlToPdfBuffer(html, { baseUrl: origin })
     const defaultBase = (() => {
       switch (String(action)) {
         case "bvn.retrieval_phone":
