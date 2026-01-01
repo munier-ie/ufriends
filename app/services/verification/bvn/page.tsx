@@ -109,17 +109,12 @@ export default function BVNVerificationPage() {
 
   const generatePDF = async () => {
     try {
-      const r = await fetch("/api/verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ action: "bvn.printout", params: { bvn } }),
-      })
-      const payload = await r.json().catch(() => null)
-      if (!r.ok) throw new Error(String(payload?.error || `Failed (${r.status})`))
+      if (!apiResult) {
+        toast({ title: "Error", description: "No verification data available", variant: "destructive" })
+        return
+      }
 
-
-      await downloadPdfAutoWithData("bvn.printout", payload, "bvn-printout", slipType)
+      await downloadPdfAutoWithData("bvn.printout", apiResult, "bvn-printout", slipType)
       toast({ title: "Success", description: "Downloaded BVN printout" })
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to generate BVN printout", variant: "destructive" })
