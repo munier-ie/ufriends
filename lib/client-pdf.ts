@@ -28,17 +28,30 @@ export async function downloadPdfViaServer(
     throw new Error(msg)
   }
 
-  const blob = await res.blob()
-  const url = URL.createObjectURL(blob)
-  const suggested = getDispositionFilename(res)
-  const fname = (fileName || suggested || `${action}-slip-${Date.now()}.pdf`)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = fname.endsWith(".pdf") ? fname : `${fname}.pdf`
-  document.body.appendChild(a)
-  a.click()
-  a.remove()
-  URL.revokeObjectURL(url)
+  let blob: Blob
+  try {
+    blob = await res.blob()
+  } catch (e: any) {
+    console.error("PDF Blob Error:", e)
+    throw new Error("Failed to process PDF data (Blob)")
+  }
+
+  try {
+    const url = URL.createObjectURL(blob)
+    const suggested = getDispositionFilename(res)
+    const fname = (fileName || suggested || `${action}-slip-${Date.now()}.pdf`)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = fname.endsWith(".pdf") ? fname : `${fname}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    // Delay revocation for mobile browsers
+    setTimeout(() => URL.revokeObjectURL(url), 2000)
+  } catch (e: any) {
+    console.error("PDF Download Error:", e)
+    throw new Error("Failed to start download: " + e?.message)
+  }
 }
 
 export async function downloadPdfAuto(
