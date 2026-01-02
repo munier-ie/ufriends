@@ -396,15 +396,33 @@ export default function AdminPricingPage() {
         <CardHeader className="flex flex-row items-center justify-between pb-2 bg-muted/20">
           <div>
             <CardTitle className="text-xl">Pricing Editor</CardTitle>
-            <CardDescription>Edit or create new pricing rules</CardDescription>
+            <CardDescription>
+              {category ? (
+                <span className="font-medium text-primary">
+                  Editing: {category} {subservice && `> ${subservice}`} {variant && `> ${variant}`}
+                </span>
+              ) : (
+                "Edit or create new pricing rules"
+              )}
+            </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => {
-            loadCatalog()
-            loadAllPrices()
-          }}>
-            <RefreshCw className="mr-2 h-4 w-4" /> Reload
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => {
+              setCategory("")
+              setForm({ basePrice: 0, userPrice: 0, marketerPrice: 0 })
+            }}>
+              New
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => {
+              loadCatalog()
+              loadAllPrices()
+            }}>
+              <RefreshCw className="mr-2 h-4 w-4" /> Reload
+            </Button>
+          </div>
         </CardHeader>
+
+
         <CardContent className="space-y-6 pt-6">
           <div className="grid gap-4 md:grid-cols-3">
             <div>
@@ -594,7 +612,7 @@ export default function AdminPricingPage() {
           </Table>
 
           <div className="flex gap-3 pt-4 border-t">
-            <Button onClick={handleSave} disabled={saving || !category || !subservice} className="w-full md:w-auto">
+            <Button onClick={handleSave} disabled={saving} className="w-full md:w-auto">
               {saving ? "Saving..." : "Save Pricing Configuration"}
             </Button>
             {pricing && (
