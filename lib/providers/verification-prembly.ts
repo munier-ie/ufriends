@@ -76,8 +76,8 @@ export async function verifyNINViaPrembly(
     "/v1/verifications/identities/nin/printout",
   ]
 
-  if (!apiBase || !apiKey || !appId) {
-    return { ok: false, code: "MISSING_CONFIG", message: "Missing provider base URL, API key, or app id" }
+  if (!apiBase || !apiKey) {
+    return { ok: false, code: "MISSING_CONFIG", message: "Missing provider base URL or API key" }
   }
 
   if (!req.nin || req.nin.length !== 11) {
@@ -97,10 +97,15 @@ export async function verifyNINViaPrembly(
 
   for (const path of candidatePaths) {
     const url = `${apiBase}${path}`
+
+    // Construct headers conditionally
+    const headers: Record<string, string> = { Accept: "application/json" }
+    if (appId) headers["app-id"] = appId
+
     try {
       const { res, data } = await fetchJsonWithRetry(url, {
         method: "POST",
-        headers: buildAuthHeaders(apiKey, { Accept: "application/json", "app-id": appId }),
+        headers: buildAuthHeaders(apiKey, headers),
         body: JSON.stringify(payload),
       }, { retries: 2, baseDelayMs: 400, timeoutMs: 12000 })
 
