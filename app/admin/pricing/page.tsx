@@ -196,22 +196,22 @@ export default function AdminPricingPage() {
     return Array.from(cats).sort()
   }, [allPrices])
 
-  // Reset dependent selects
-  useEffect(() => {
-    setSubservice("")
-    setVariant("")
-    setPricing(null)
-    setParamOptions({})
-    setParams({})
-    setParamRows([])
-  }, [category])
-  useEffect(() => {
-    setVariant("")
-    setPricing(null)
-    setParamOptions({})
-    setParams({})
-    setParamRows([])
-  }, [subservice])
+  // Reset dependent selects - MOVED TO onValueChange handlers to avoid race conditions with handleEdit
+  // useEffect(() => {
+  //   setSubservice("")
+  //   setVariant("")
+  //   setPricing(null)
+  //   setParamOptions({})
+  //   setParams({})
+  //   setParamRows([])
+  // }, [category])
+  // useEffect(() => {
+  //   setVariant("")
+  //   setPricing(null)
+  //   setParamOptions({})
+  //   setParams({})
+  //   setParamRows([])
+  // }, [subservice])
 
   // Load existing pricing when selection changes
   // Fetch parameter options and pricing when selection changes
@@ -271,14 +271,23 @@ export default function AdminPricingPage() {
       .then(async (res) => {
         const data = await res.json()
         if (!res.ok || data.error) {
-          setPricing(null)
-          // Don't reset form completely if we are manually setting things, but resetting base/user/marketer is okay
-          // If we clicked "Edit" from table, form state is already set by handleEdit. 
-          // We should be careful not to overwrite it if 'params' matches.
-          if (!saving) { // Simple guard
+          // If simply switching valid selections and no price exists, we might want to reset form
+          // But if we just clicked "Edit" and set Form state, we don't want to reset it if the fetch returns 404/error temporarily
+          // However, typically "Edit" implies the record exists, so fetch should return data.
+          // If we manually change selection to something new, we want form to clear.
+          // Distinguishing "Manual Change" vs "Programmatic Edit" is tricky without a flag.
+          // But since handleEdit sets state, and then this effect runs...
+          // If this fetch returns different data, it overwrites handleEdit's form state.
+          // This is desired behavior: "Latest from DB should win".
+
+          if (!saving) {
+            // Default behavior for new selection: clear form
+            // But for Edit, we manually set form. 
+            // If fetch fails (maybe params mismatch yet), we might clear user input? Use caution.
+            // For now, let's only clear if we are NOT in the middle of a save.
+            // And maybe check if form is "dirty"?
+            setPricing(null)
             // setForm({ basePrice: 0, userPrice: 0, marketerPrice: 0 }) 
-            // Behavior: if no strict match, maybe keep 0. 
-            // But careful, if we just setParams from handleEdit, this fetch might overwrite with 0 if API logic differs.
           }
           return
         }
@@ -345,76 +354,23 @@ export default function AdminPricingPage() {
   }
 
   const handleEdit = (entry: CatalogPricingEntry) => {
-    setCategory(entry.category)
-    // Small timeout to allow category effect to clear before setting subservice
-    // But since we control state, we can batch update? No, existing useEffects will trigger.
-    // We should probably rely on sequential updates or just set them.
-    // To properly edit, we set the dropdowns. 
-    // Effect [category] -> clears subservice. 
-    // We need to avoid that.
-    // Hack: we can't easily bypass the useEffect resets without refactoring.
-    // Strategy: Just scroll to top and users select manually? No, user wants "Enhance".
-    // Better: Refactor the useEffect to inspect if we are "editing" differently. 
-    // Or just suppress the clears if the values match what we want? Hard.
-    // 
-    // Alternative: We set category, then wait, set subservice? 
-    // Actually, React state updates are batched. But the useEffect[category] will run after render.
-    // If we setSubservice in same batch, effect might see it changed? 
-    // The effect says: `setSubservice("")`. This will wipe whatever we set.
-    //
-    // So we must temporarily disable the reset effects or modify them.
-    // Let's modify the useEffects to ONLY reset if the new value doesn't match a "pending" target?
-    // Or simpler: remove the forced resets and let the user handle incompatibility? 
-    // Or check if newValue !== oldValue?
-    //
-    // Simplest fix for now without massive refactor:
-    // We'll set the values and perhaps the user has to re-select if the UI clears it?
-    // Let's try to set them all. Note: `setParamRows` needs to be derived from `entry.parameters`.
-    // We will render the form with the values from `entry`.
-
-    // We can just define a "loadEditEntry" function that sets everything effectively.
-    // To bypass the `useEffect` resets, we can check if the value is actually changing before resetting?
-    // `useEffect(() => setSubservice(""), [category])` -> triggers whenever category changes.
-    // If we set category to "bvn" (was ""), it triggers.
-    //
-    // Correct approach for this component structure:
-    // We cannot easily automate setting all 3 levels without racing the effects.
-    // I will enable "Edit" to just Populate the values in the form mostly visual/State, 
-    // but the dropdowns might need manual intervention or we accept the race.
-    //
-    // Actually, let's remove the `useEffect` that clears subservice on category change. 
-    // Why clear it? To prevents invalid subservice for new category. 
-    // If we set both validly, it might be ok IF the `Select` component doesn't freak out.
-    // 
-    // Let's try: Scroll to top, setCategory, and notify user "Please select subservice...". 
-    // No that's bad UX.
-    // 
-    // Okay, I will modify the useEffects slightly to allow this flow.
-    // OR BETTER: Use the List as the primary view, and Form as a modal?
-    // The prompt says "Enhance... so admin can edit".
-    // 
-    // I'll stick to: Click edit -> updates state. 
-    // I will remove the automatic clearing effects. 
-    // Instead, the `Select` component `value` prop will just be mismatched if invalid. 
-    // Or I'll handle "clearing" inside the `onValueChange` of the parent.
-    // (This is the standard React pattern: don't use detailed useEffects for dependent fields, handle it in change handler).
-
-    // So I will REMOVE the `useEffect` blocks that reset `subservice` and `variant`.
-    // And move that logic to `onValueChange`.
-
-    setCategory(entry.category)
-    setSubservice(entry.subservice)
-    setVariant(entry.variant || "")
+    // 1. Set form data first so it's ready
     setForm({
       basePrice: Number(entry.basePrice),
       userPrice: Number(entry.userPrice),
       marketerPrice: Number(entry.marketerPrice)
     })
 
-    // Params
+    // 2. Set params
     const pRows = Object.entries(entry.parameters || {}).map(([k, v]) => ({ key: k, value: String(v) }))
     setParamRows(pRows)
     setParams(entry.parameters || {})
+
+    // 3. Set selection state - triggering the View useEffect
+    // Since we removed the "resetting" useEffects, these can be set safely without race conditions clearing them
+    setCategory(entry.category)
+    setSubservice(entry.subservice)
+    setVariant(entry.variant || "")
 
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -425,7 +381,8 @@ export default function AdminPricingPage() {
       const matchSearch = searchTerm === "" ||
         p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.subservice.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.variant.toLowerCase().includes(searchTerm.toLowerCase())
+        p.variant.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        JSON.stringify(p.parameters).toLowerCase().includes(searchTerm.toLowerCase())
 
       const matchCat = filterCategory === "all" || p.category === filterCategory
 
@@ -454,8 +411,13 @@ export default function AdminPricingPage() {
               <Label>Category</Label>
               <Select value={category} onValueChange={(v) => {
                 setCategory(v)
-                setSubservice("") // Reset on manual change
+                // Manual reset when user changes category actively
+                setSubservice("")
                 setVariant("")
+                setPricing(null)
+                setParamOptions({})
+                setParams({})
+                setParamRows([])
               }}>
                 <SelectTrigger className="mt-2 text-base">
                   <SelectValue placeholder="Select category" />
@@ -471,7 +433,13 @@ export default function AdminPricingPage() {
               <Label>Subservice</Label>
               <Select value={subservice} onValueChange={(v) => {
                 setSubservice(v)
-                setVariant("") // Reset variant on manual change
+                // Manual reset when user changes subservice actively
+                setVariant("")
+                setPricing(null)
+                // Keep params potentially? No, usually distinct.
+                setParams({})
+                setParamRows([])
+
               }}>
                 <SelectTrigger className="mt-2 text-base">
                   <SelectValue placeholder="Select subservice" />
