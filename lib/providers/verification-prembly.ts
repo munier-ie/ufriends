@@ -85,7 +85,8 @@ export async function verifyNINViaPrembly(
   }
 
   const payload = {
-    nin: req.nin,
+    number_nin: req.nin, // Prembly often expects number_nin
+    number: req.nin,     // Some endpoints expect number
     phone: req.phone,
     firstName: req.firstName,
     lastName: req.lastName,
