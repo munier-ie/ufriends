@@ -1,49 +1,13 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+"use client"
 
-const faqs = [
-  {
-    question: "How secure are my transactions on UFriends IT?",
-    answer:
-      "We use bank-level security with 256-bit SSL encryption, multi-factor authentication, and comply with international security standards. All transactions are monitored 24/7 for fraud prevention, and your personal information is never shared with third parties.",
-  },
-  {
-    question: "What are the transaction limits and fees?",
-    answer:
-      "Transaction limits vary by service type and account verification level. Basic accounts have daily limits of ₦500,000, while verified accounts can transact up to ₦5,000,000 daily. Our fees are competitive and transparent - airtime purchases have no fees, while bill payments have a flat ₦50 convenience fee.",
-  },
-  {
-    question: "How long do transactions take to process?",
-    answer:
-      "Most transactions are processed instantly, including airtime purchases, data bundles, and bill payments. Bank transfers typically take 1-5 minutes, while BVN and NIN verification services are completed within 24 hours during business days.",
-  },
-  {
-    question: "Can I get a refund if something goes wrong?",
-    answer:
-      "Yes, we have a comprehensive refund policy. Failed transactions are automatically reversed within 24 hours. For service-related issues, contact our support team with your transaction reference, and we'll resolve it within 48 hours. Refunds for successful transactions depend on the service provider's policy.",
-  },
-  {
-    question: "Do you offer customer support?",
-    answer:
-      "Our customer support team is available 24/7 through multiple channels: in-app chat, email (support@ufriendsit.com), phone (+234-800-UFRIENDS), and WhatsApp. We also have a comprehensive help center with guides and tutorials.",
-  },
-  {
-    question: "How do I verify my account for higher limits?",
-    answer:
-      "Account verification is simple and secure. Upload a valid government-issued ID (NIN, driver's license, or passport), provide your BVN, and take a selfie for identity confirmation. Verification typically takes 2-4 hours during business days and unlocks higher transaction limits and premium features.",
-  },
-  {
-    question: "Can I use UFriends IT for business transactions?",
-    answer:
-      "Yes! We offer specialized business accounts with features like bulk payments, invoice generation, expense tracking, and dedicated account managers. Business accounts have higher transaction limits and access to our API for integration with your existing systems.",
-  },
-  {
-    question: "Is there a mobile app available?",
-    answer:
-      "Yes, our mobile app is available for both iOS and Android devices. Download it from the App Store or Google Play Store. The app offers all web platform features plus biometric login, push notifications, and offline transaction history viewing.",
-  },
-]
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { useSiteContent } from "@/hooks/useSiteContent"
 
 export function FaqSection() {
+  const { content } = useSiteContent()
+  const faqs = content.faqs
+  const contact = content.contact
+
   return (
     <section id="faq" className="py-20 lg:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,7 +50,7 @@ export function FaqSection() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <div className="flex items-center space-x-2 text-sm">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-muted-foreground">24/7 Support Available</span>
+                  <span className="text-muted-foreground">{contact.supportHours} Support Available</span>
                 </div>
                 <div className="flex items-center space-x-2 text-sm">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
@@ -122,13 +86,13 @@ export function FaqSection() {
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <a
-                  href="mailto:support@ufriendsit.com"
+                  href={`mailto:${contact.email}`}
                   className="text-primary hover:text-primary/80 text-sm font-medium"
                 >
-                  support@ufriendsit.com
+                  {contact.email}
                 </a>
-                <a href="tel:+2348001234567" className="text-primary hover:text-primary/80 text-sm font-medium">
-                  +234-800-UFRIENDS
+                <a href={contact.phoneHref} className="text-primary hover:text-primary/80 text-sm font-medium">
+                  {contact.phone}
                 </a>
               </div>
             </div>

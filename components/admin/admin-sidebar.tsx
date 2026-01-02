@@ -49,6 +49,7 @@ const navigation = [
   { name: "Training Manager", href: "/admin/training-manager", icon: GraduationCap },
   { name: "POS Requests", href: "/admin/pos-requests", icon: Smartphone },
   { name: "Marketers", href: "/admin/marketers", icon: Users },
+  { name: "Site Content", href: "/admin/site-content", icon: FileText },
   { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 

@@ -5,8 +5,12 @@ import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint } from "lucide-react"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
+import { useSiteContent } from "@/hooks/useSiteContent"
 
 export function HeroSection() {
+  const { content } = useSiteContent()
+  const hero = content.hero
+
   const scrollToServices = () => {
     const servicesSection = document.getElementById("services")
     if (servicesSection) {
@@ -32,11 +36,12 @@ export function HeroSection() {
           >
             <div className="space-y-4">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight text-balance">
-                Your Complete <span className="text-primary">Financial</span> Technology Partner
+                {hero.title.split(hero.titleHighlight)[0]}
+                <span className="text-primary">{hero.titleHighlight}</span>
+                {hero.title.split(hero.titleHighlight)[1] || ""}
               </h1>
               <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed text-pretty max-w-2xl">
-                Experience seamless digital payments, bill management, and financial services all in one powerful
-                platform. UFriends IT makes managing your finances simple, secure, and efficient.
+                {hero.subtitle}
               </p>
             </div>
 
@@ -63,18 +68,12 @@ export function HeroSection() {
             </div>
 
             <div className="flex items-center space-x-8 pt-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">50K+</div>
-                <div className="text-sm text-muted-foreground">Active Users</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">₦2B+</div>
-                <div className="text-sm text-muted-foreground">Transactions</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">99.9%</div>
-                <div className="text-sm text-muted-foreground">Uptime</div>
-              </div>
+              {hero.stats.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </motion.div>
 

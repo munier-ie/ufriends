@@ -1,3 +1,5 @@
+"use client"
+
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -6,8 +8,12 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Mail, Phone, MapPin, Clock, MessageCircle, Headphones } from "lucide-react"
+import { useSiteContent } from "@/hooks/useSiteContent"
 
 export default function ContactPage() {
+  const { content } = useSiteContent()
+  const contact = content.contact
+
   return (
     <div className="min-h-screen crosshatch-bg">
       <Navbar />
@@ -34,8 +40,8 @@ export default function ContactPage() {
                   <Phone className="w-12 h-12 text-primary mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-foreground mb-3">Phone Support</h3>
                   <p className="text-muted-foreground mb-4">Speak directly with our support team</p>
-                  <a href="tel:+2348001234567" className="text-primary hover:text-primary/80 font-medium">
-                    +234-800-UFRIENDS
+                  <a href={contact.phoneHref} className="text-primary hover:text-primary/80 font-medium">
+                    {contact.phone}
                   </a>
                 </CardContent>
               </Card>
@@ -45,8 +51,8 @@ export default function ContactPage() {
                   <Mail className="w-12 h-12 text-primary mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-foreground mb-3">Email Support</h3>
                   <p className="text-muted-foreground mb-4">Send us an email and we'll respond quickly</p>
-                  <a href="mailto:support@ufriendsit.com" className="text-primary hover:text-primary/80 font-medium">
-                    support@ufriendsit.com
+                  <a href={`mailto:${contact.email}`} className="text-primary hover:text-primary/80 font-medium">
+                    {contact.email}
                   </a>
                 </CardContent>
               </Card>
@@ -57,7 +63,7 @@ export default function ContactPage() {
                   <h3 className="text-xl font-semibold text-foreground mb-3">WhatsApp Chat</h3>
                   <p className="text-muted-foreground mb-4">Chat with us directly on WhatsApp</p>
                   <a
-                    href="https://wa.me/2348001234567"
+                    href={contact.whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:text-primary/80 font-medium"
@@ -160,11 +166,11 @@ export default function ContactPage() {
                       Office Location
                     </h3>
                     <p className="text-muted-foreground">
-                      123 Technology Drive
+                      {contact.address.street}
                       <br />
-                      Victoria Island, Lagos
+                      {contact.address.city}
                       <br />
-                      Nigeria
+                      {contact.address.country}
                     </p>
                   </CardContent>
                 </Card>
@@ -178,16 +184,16 @@ export default function ContactPage() {
                     <div className="space-y-2 text-muted-foreground">
                       <div className="flex justify-between">
                         <span>Monday - Friday:</span>
-                        <span>24/7</span>
+                        <span>{contact.supportHours}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Saturday - Sunday:</span>
-                        <span>24/7</span>
+                        <span>{contact.supportHours}</span>
                       </div>
                       <div className="mt-4 p-3 bg-primary/10 rounded-lg">
                         <div className="flex items-center text-primary">
                           <Headphones className="w-4 h-4 mr-2" />
-                          <span className="font-medium">24/7 Support Available</span>
+                          <span className="font-medium">{contact.supportHours} Support Available</span>
                         </div>
                       </div>
                     </div>
@@ -202,7 +208,7 @@ export default function ContactPage() {
                       line.
                     </p>
                     <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                      <a href="https://wa.me/2348001234567" target="_blank" rel="noopener noreferrer">
+                      <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
                         Chat on WhatsApp
                       </a>
                     </Button>
