@@ -14,6 +14,7 @@ function stableParamsKey(params?: Record<string, unknown>): string {
 }
 
 // GET /api/admin/pricing?serviceSlug=...&includeHistory=true
+// OR /api/admin/pricing?type=catalog (fetches all catalog pricing)
 export async function GET(req: NextRequest) {
   try {
     const auth = await requireAuth(req, { roles: ["ADMIN"] })
@@ -25,6 +26,21 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url)
+    const type = searchParams.get("type")
+
+    // New Catalog Pricing Mode
+    if (type === "catalog") {
+      const prices = await prisma.catalogPricing.findMany({
+        orderBy: [
+          { category: "asc" },
+          { subservice: "asc" },
+          { variant: "asc" }
+        ]
+      })
+      return NextResponse.json({ ok: true, prices })
+    }
+
+    // Legacy / Service-based mode
     const serviceSlug = searchParams.get("serviceSlug") || undefined
     const includeHistory = (searchParams.get("includeHistory") || "false").toLowerCase() === "true"
 
@@ -49,7 +65,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: true, service, price: latest || null })
     }
 
-    // Return latest price per active service
+    // Return latest price per active service (Legacy)
     const services = await prisma.service.findMany({ where: { active: true } })
     const results: Array<{ service: { id: string; name: string; slug: string }; price: any | null }> = []
     for (const s of services) {
