@@ -7,7 +7,7 @@ const PREMBLY_BASE_URL = process.env.PREMBLY_BASE_URL || 'https://api.prembly.co
 
 interface PremblyConfig {
   apiKey: string;
-  appId: string;
+  appId?: string;
 }
 
 interface PremblyResponse<T> {
@@ -101,8 +101,8 @@ interface PlateNumberParams {
  */
 export class PremblyClient {
   private apiKey: string;
-  private appId: string;
-  
+  private appId?: string;
+
   constructor(config: PremblyConfig) {
     this.apiKey = config.apiKey;
     this.appId = config.appId;
@@ -118,14 +118,20 @@ export class PremblyClient {
           hasAppId: !!this.appId,
         })
       }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-api-key': this.apiKey,
+      };
+
+      if (this.appId) {
+        headers['app-id'] = this.appId;
+      }
+
       const response = await fetch(`${PREMBLY_BASE_URL}${endpoint}`, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'x-api-key': this.apiKey,
-          'app-id': this.appId,
-        },
+        headers,
         body: data ? JSON.stringify(data) : undefined,
       });
 
@@ -137,15 +143,15 @@ export class PremblyClient {
         const text = await response.text();
         throw new Error(`Unexpected response from Prembly (${response.status}): ${text.slice(0, 200)}...`);
       }
-      
+
       if (!response.ok) {
         const msg = typeof result?.error === 'string' ? result.error
           : typeof result?.detail === 'string' ? result.detail
-          : typeof result?.message === 'string' ? result.message
-          : 'Failed to process request';
+            : typeof result?.message === 'string' ? result.message
+              : 'Failed to process request';
         throw new Error(msg);
       }
-      
+
       return result;
     } catch (error: any) {
       console.error('Prembly API Error:', error);
@@ -270,7 +276,7 @@ export class PremblyClient {
 // Create and export a singleton instance with environment variables
 export const premblyClient = new PremblyClient({
   apiKey: process.env.PREMBLY_API_KEY || '',
-  appId: process.env.PREMBLY_APP_ID || '',
+  appId: process.env.PREMBLY_APP_ID || undefined,
 });
 
 export default premblyClient;
