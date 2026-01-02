@@ -256,13 +256,43 @@ export async function POST(req: NextRequest) {
       const nokState = src.nok_state || ""
       const nokLgaTown = src.nok_town || src.nok_lga || ""
       const nokPostalCode = src.nok_postalcode || ""
+
+      // Populate aliases with standard keys
       aliases.surname = lastName
+      aliases.Surname = lastName
+      aliases.SURNAME = lastName
+      aliases.last_name = lastName
+      aliases.LASTNAME = lastName
+
       aliases.first_name = firstName
+      aliases.FirstName = firstName
+      aliases.FIRSTNAME = firstName
+      aliases.FIRST_NAME = firstName
+
       aliases.middle_name = middleName
+      aliases.MiddleName = middleName
+      aliases.MIDDLENAME = middleName
+
       aliases.given_names = givenNames
+      aliases.GivenNames = givenNames
+      aliases.GIVEN_NAMES = givenNames
+
       aliases.sex = sex
+      aliases.SEX = sex
       aliases.gender = gender
+      aliases.GENDER = gender
+
       aliases.nin = nin
+      aliases.NIN = nin
+
+      // Flatten all source data into aliases to catch anything else
+      for (const [k, v] of Object.entries(src)) {
+        if (v && typeof v === 'string' || typeof v === 'number') {
+          aliases[k] = v;
+          aliases[k.toUpperCase()] = v;
+          aliases[k.toLowerCase()] = v;
+        }
+      }
       const dobRaw = src.birthdate || src.date_of_birth || src.dob || src.dateOfBirth || ""
       const fmtDate = (v: any) => {
         const s = String(v || "").trim()
