@@ -22,11 +22,9 @@ import { cn } from "@/lib/utils"
 import { useSidebar, SidebarTrigger } from "@/components/ui/sidebar"
 import { authFetch } from "@/lib/client-auth"
 
-interface TopNavbarProps {
-  onMenuClick?: () => void
-}
 
-export function TopNavbar({ onMenuClick }: TopNavbarProps) {
+
+export function TopNavbar() {
   const router = useRouter()
   const [walletBalance, setWalletBalance] = useState(0)
   const [notificationCount, setNotificationCount] = useState(0)
@@ -36,7 +34,7 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
   const [userName, setUserName] = useState<string>("")
   const [userEmail, setUserEmail] = useState<string>("")
   const [userRole, setUserRole] = useState<string>("")
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, toggleSidebar } = useSidebar()
 
   const loadNotifications = async () => {
     try {
@@ -164,7 +162,7 @@ export function TopNavbar({ onMenuClick }: TopNavbarProps) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={onMenuClick}
+          onClick={toggleSidebar}
           className="md:hidden text-foreground hover:bg-primary/10"
         >
           <Menu className="h-5 w-5" />
