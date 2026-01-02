@@ -1,5 +1,5 @@
 import { type ProviderConfig } from "@/lib/provider-manager"
-import { fetchJsonWithRetry, buildAuthHeaders } from "@/lib/http-client"
+import { fetchJsonWithRetry } from "@/lib/http-client"
 
 export interface NINVerificationRequest {
   nin: string
@@ -99,13 +99,21 @@ export async function verifyNINViaPrembly(
     const url = `${apiBase}${path}`
 
     // Construct headers conditionally
-    const headers: Record<string, string> = { Accept: "application/json" }
+    // FIX: Do NOT use buildAuthHeaders because it adds 'Authorization: Bearer' which Prembly rejects
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "x-api-key": apiKey
+    }
     if (appId) headers["app-id"] = appId
+
+    // Debug log to confirm credentials on server (safe mask)
+    console.log(`[Prembly] Requesting ${path} with API Key: ${apiKey ? apiKey.substring(0, 8) + '...' : 'MISSING'} | App ID: ${appId ? appId : 'NONE'}`)
 
     try {
       const { res, data } = await fetchJsonWithRetry(url, {
         method: "POST",
-        headers: buildAuthHeaders(apiKey, headers),
+        headers,
         body: JSON.stringify(payload),
       }, { retries: 2, baseDelayMs: 400, timeoutMs: 12000 })
 
@@ -176,8 +184,3 @@ export async function verifyNINViaPrembly(
   // If we exhausted all candidates, return the last error captured
   return lastError || { ok: false, code: "UNKNOWN_ERROR", message: "NIN verification failed for unknown reasons" }
 }
-
-/**
- * Mock NIN verification for local testing
- */
-// Mock NIN verification removed; platform now enforces real provider integration
