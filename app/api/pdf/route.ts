@@ -314,6 +314,11 @@ export async function POST(req: NextRequest) {
         return `${dd} ${mmm} ${yyyy}`
       }
       aliases.dob = fmtDate(dobRaw)
+      aliases.DOB = aliases.dob
+      aliases.date_of_birth = aliases.dob
+      aliases.DATE_OF_BIRTH = aliases.dob
+      aliases.birthdate = aliases.dob
+      aliases.BIRTHDATE = aliases.dob
       const ninDigits = String(nin || "").replace(/\D+/g, "")
       const ninSpaced = ninDigits.length === 11 ? `${ninDigits.slice(0, 4)} ${ninDigits.slice(4, 7)} ${ninDigits.slice(7)}` : nin
       aliases.nin_spaced = ninSpaced
