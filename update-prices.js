@@ -97,6 +97,24 @@ async function main() {
         await upsertPrice({ category: 'verification', subservice: 'cac', variant: 'default', basePrice: 100, userPrice: 200, marketerPrice: 150 });
         await upsertPrice({ category: 'verification', subservice: 'plate-number', variant: 'default', basePrice: 100, userPrice: 200, marketerPrice: 150 });
 
+        console.log('...Adding explicit verification/nin pricing variants...');
+        const ninSlipTypes = ['basic', 'standard', 'regular', 'premium'];
+        for (const type of ninSlipTypes) {
+            // Differentiating prices slightly based on type logic (assumed)
+            let bP = 500, uP = 1000, mP = 800;
+            if (type === 'premium') { bP = 1500; uP = 2500; mP = 2000; }
+            else if (type === 'standard' || type === 'regular') { bP = 1000; uP = 1500; mP = 1200; }
+
+            await upsertPrice({
+                category: 'verification',
+                subservice: 'nin',
+                variant: type,
+                basePrice: bP,
+                userPrice: uP,
+                marketerPrice: mP
+            });
+        }
+
         console.log('\n=== EDUCATION SERVICES ===');
         await upsertPrice({ category: 'education', subservice: 'waec', variant: 'default', basePrice: 3000, userPrice: 5000, marketerPrice: 4000 });
         await upsertPrice({ category: 'education', subservice: 'neco', variant: 'default', basePrice: 2500, userPrice: 4500, marketerPrice: 3500 });

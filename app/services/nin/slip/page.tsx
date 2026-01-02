@@ -39,7 +39,7 @@ export default function NINSlipPage() {
   const { toast } = useToast()
 
   // Use dynamic pricing hook (catalog-based)
-  const variantLabel = (slipType || "standard").replace(/^\w/, (c) => c.toUpperCase())
+  const variantLabel = (slipType || "standard").toLowerCase()
   const { price, isLoading, error, submitService, reference } = useDynamicPricing("verification", "nin", variantLabel)
 
   const handleSubmit = async () => {
