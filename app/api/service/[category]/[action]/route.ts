@@ -32,7 +32,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
 
     const body = await req.json()
     const Schema = z.object({
-      amount: z.number().positive(),
+      amount: z.number().min(0),
       idempotencyKey: z.string().min(8).optional(),
       params: z.record(z.any()).default({}),
       subServiceId: z.string().optional(),

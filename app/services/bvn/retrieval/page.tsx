@@ -79,7 +79,7 @@ export default function BVNRetrievalPage() {
     setPendingPayload({
       amount,
       idempotencyKey: crypto.randomUUID(),
-      params: { phoneNumber },
+      phoneNumber,
     })
     setIsPinPromptOpen(true)
   }
