@@ -57,6 +57,7 @@ const sdkBackedClient: HttpPremblyClient & Record<string, any> = {
   // Everything else falls back to the HTTP client for now
   async getBVNPrintout(params: any) { return premblyHttpClient.getBVNPrintout(params) },
   async getBVNByPhone(params: any) { return premblyHttpClient.getBVNByPhone(params) },
+  async getBVNWithPhone(params: any) { return premblyHttpClient.getBVNWithPhone(params) },
   async getBVNAdvanced(params: any) { return premblyHttpClient.getBVNAdvanced(params) },
 
   async getNINPrintout(params: any) { return premblyHttpClient.getNINPrintout(params) },
