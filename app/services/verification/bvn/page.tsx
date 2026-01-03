@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
-import { Info, Download, CheckCircle } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Info, Download, CheckCircle, Smartphone } from "lucide-react"
 import { PinPrompt } from "@/components/PinPrompt"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
@@ -27,7 +28,11 @@ export default function BVNVerificationPage() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
   const [showResult, setShowResult] = useState(false)
-  const { price, isLoading, error: pricingError, submitService, reference } = useDynamicPricing("bvn", "printout", "default")
+  const [mode, setMode] = useState<"verify" | "retrieve">("verify")
+
+  // Dynamic subservice based on mode
+  const subService = mode === "verify" ? "printout" : "retrieval_phone"
+  const { price, isLoading, error: pricingError, submitService, reference } = useDynamicPricing("bvn", subService, "default")
   const [apiResult, setApiResult] = useState<any | null>(null)
   const [isPinPromptOpen, setIsPinPromptOpen] = useState(false)
   const [pendingPayload, setPendingPayload] = useState<any>(null)
@@ -53,7 +58,7 @@ export default function BVNVerificationPage() {
     }
 
     if (bvn.length !== 11) {
-      toast({ title: "Error", description: "BVN must be 11 digits", variant: "destructive" })
+      toast({ title: "Error", description: mode === "verify" ? "BVN must be 11 digits" : "Phone number must be 11 digits", variant: "destructive" })
       return
     }
 
@@ -69,11 +74,18 @@ export default function BVNVerificationPage() {
         setIsVerifying(false)
         return
       }
-      setPendingPayload({
+      const payload: any = {
         amount: amt,
         idempotencyKey: crypto.randomUUID(),
-        bvn,
-      })
+      }
+
+      if (mode === "verify") {
+        payload.bvn = bvn
+      } else {
+        payload.phoneNumber = bvn // "bvn" state holds the input value (either BVN or Phone)
+      }
+
+      setPendingPayload(payload)
       setIsPinPromptOpen(true)
     } finally {
       setIsVerifying(false)
@@ -114,7 +126,8 @@ export default function BVNVerificationPage() {
         return
       }
 
-      await downloadPdfAutoWithData("bvn.printout", apiResult, "bvn-printout", slipType)
+      const action = mode === "verify" ? "bvn.printout" : "bvn.retrieval_phone"
+      await downloadPdfAutoWithData(action, apiResult, "bvn-printout", slipType)
       toast({ title: "Success", description: "Downloaded BVN printout" })
     } catch (err: any) {
       toast({ title: "Error", description: err?.message || "Failed to generate BVN printout", variant: "destructive" })
@@ -159,21 +172,36 @@ export default function BVNVerificationPage() {
             >
               <Card className="shadow-lg border-[#CCCCFF]/30">
                 <CardContent className="p-6 md:p-8">
-                  <h1 className="text-2xl font-bold mb-2 text-gray-900">BVN Verification</h1>
-                  <p className="text-sm text-gray-600 mb-8">Verify Bank Verification Number instantly</p>
+                  <h1 className="text-2xl font-bold mb-2 text-gray-900">BVN Services</h1>
+                  <p className="text-sm text-gray-600 mb-6">Verify BVN or Retrieve BVN using Phone Number</p>
+
+                  <Tabs value={mode} onValueChange={(v) => { setMode(v as any); setBvn(""); setErrorMsg(null); }} className="w-full mb-6">
+                    <TabsList className="grid w-full grid-cols-2 bg-[#F0F0FF]">
+                      <TabsTrigger value="verify" className="data-[state=active]:bg-[#3457D5] data-[state=active]:text-white">Verify BVN</TabsTrigger>
+                      <TabsTrigger value="retrieve" className="data-[state=active]:bg-[#3457D5] data-[state=active]:text-white">Retrieve via Phone</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
 
                   <form className="space-y-6" onSubmit={handleSubmit}>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Bank Verification Number (BVN)</Label>
+                      <Label className="text-sm font-medium">
+                        {mode === "verify" ? "Bank Verification Number (BVN)" : "Phone Number"}
+                      </Label>
                       <Input
                         type="text"
-                        placeholder="Enter 11-digit BVN"
+                        placeholder={mode === "verify" ? "Enter 11-digit BVN" : "Enter Phone Number (080...)"}
                         maxLength={11}
                         value={bvn}
                         onChange={(e) => setBvn(e.target.value.replace(/\D/g, ""))}
                         className="border-[#CCCCFF] focus:border-[#3457D5]"
                         required
                       />
+                      {mode === "retrieve" && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Smartphone className="h-3 w-3" />
+                          Enter the phone number linked to the BVN
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-4 border-t border-[#CCCCFF]/50 pt-4">
@@ -219,7 +247,7 @@ export default function BVNVerificationPage() {
                       className="w-full bg-[#3457D5] hover:bg-[#3457D5]/90 text-white font-medium py-6"
                       disabled={!consentChecked || !termsAccepted || isVerifying || isLoading}
                     >
-                      {isVerifying ? "Verifying..." : `Verify - ₦${price ?? 400}`}
+                      {isVerifying ? "Processing..." : `${mode === "verify" ? "Verify" : "Retrieve"} - ₦${price ?? "..."}`}
                     </Button>
                   </form>
                 </CardContent>
@@ -232,8 +260,8 @@ export default function BVNVerificationPage() {
                   <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
-                  <h2 className="text-2xl font-bold mb-2">Verification Complete!</h2>
-                  <p className="text-gray-600 mb-6">BVN has been successfully verified.</p>
+                  <h2 className="text-2xl font-bold mb-2">{mode === "verify" ? "Verification Complete!" : "Retrieval Successful!"}</h2>
+                  <p className="text-gray-600 mb-6">{mode === "verify" ? "BVN has been successfully verified." : "BVN details retrieved successfully."}</p>
                   {(() => {
                     const data: any = apiResult?.data ?? (apiResult as any)?.result ?? {}
                     const fullName =

@@ -85,7 +85,11 @@ async function dispatchService(
       if (category === "nin") {
         res = subServiceId === "slip" ? await client.getNINSlip(params as any) : await client.getNINAdvanced(params as any)
       } else if (category === "bvn") {
-        res = subServiceId === "printout" ? await client.getBVNPrintout(params as any) : await client.getBVNAdvanced(params as any)
+        if (subServiceId === "retrieval_phone" || subServiceId === "retrieval") {
+          res = await client.getBVNWithPhone(params as any)
+        } else {
+          res = subServiceId === "printout" ? await client.getBVNPrintout(params as any) : await client.getBVNAdvanced(params as any)
+        }
       } else if (category === "cac") {
         res = (subServiceId === "status" || subServiceId === "status-report") ? await client.getCACStatusReport(params as any) : await client.getCACInfo(params as any)
       } else if (category === "tin") {
