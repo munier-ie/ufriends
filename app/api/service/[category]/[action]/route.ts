@@ -178,8 +178,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
           res = await premblyClient.getBVNPrintout({ bvn: String((params as any)?.bvn || "") })
         } else if (actionId.toLowerCase() === "advanced") {
           res = await premblyClient.getBVNAdvanced({ bvn: String((params as any)?.bvn || "") })
-        } else if (actionId.toLowerCase() === "retrieval_phone") {
-          res = await premblyClient.getBVNByPhone({ phoneNumber: String((params as any)?.phoneNumber || "") })
+        } else if (actionId.toLowerCase() === "retrieval_phone" || actionId.toLowerCase() === "retrieval") {
+          res = await premblyClient.getBVNWithPhone({ phoneNumber: String((params as any)?.phoneNumber || "") })
         } else {
           return NextResponse.json({ error: `Unsupported BVN action: ${actionId}` }, { status: 400 })
         }
