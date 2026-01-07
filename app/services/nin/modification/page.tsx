@@ -51,10 +51,21 @@ export default function NINModificationPage() {
     return s.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "unknown"
   }, [modificationType])
 
+  const pricingVariant = useMemo(() => {
+    switch (modificationType) {
+      case "name": return "name"
+      case "dob": return "dob"
+      case "address": return "address"
+      case "gender": return "gender"
+      case "phone": return "phone"
+      default: return "name" // Fallback
+    }
+  }, [modificationType])
+
   const { price: dynPrice, isLoading: priceLoading, error: priceError, submitService } = useDynamicPricing(
     "nin",
     "modification",
-    "basic",
+    pricingVariant,
     { modificationType: normalizedModificationType },
   )
 

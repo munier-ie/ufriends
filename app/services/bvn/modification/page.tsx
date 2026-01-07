@@ -81,10 +81,22 @@ export default function BVNModificationPage() {
     return s.replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "unknown"
   }, [modificationType])
 
+  const pricingVariant = useMemo(() => {
+    switch (modificationType) {
+      case "Name Correction": return "name"
+      case "Date of Birth Correction": return "dob"
+      case "Phone Number Update": return "phone"
+      case "Address Update": return "address"
+      case "Gender Correction": return "gender"
+      case "Email Correction": return "email"
+      default: return "name" // Fallback to cheapest or common
+    }
+  }, [modificationType])
+
   const { price: servicePrice, isLoading: priceLoading, error: priceError, submitService } = useDynamicPricing(
     "bvn",
     "modification",
-    "basic",
+    pricingVariant,
     { modificationType: normalizedModificationType, verificationType },
   )
 
