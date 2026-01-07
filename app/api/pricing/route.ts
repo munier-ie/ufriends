@@ -144,6 +144,9 @@ export async function GET(req: NextRequest) {
           // Count matching key=value pairs
           let score = 0
           for (const k of keys) {
+            // Ignore metadata keys (like "label") which are for display only
+            if (k === 'label') continue;
+
             const reqVal = dynParams[k]
             const candVal = paramsObj[k]
             if (reqVal !== undefined && String(reqVal).toLowerCase() === String(candVal).toLowerCase()) {
