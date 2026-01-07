@@ -66,7 +66,10 @@ export default function NINModificationPage() {
     "nin",
     "modification",
     pricingVariant,
-    { modificationType: normalizedModificationType },
+    {
+      modificationType: normalizedModificationType,
+      type: pricingVariant
+    },
   )
 
   // Reflect hook price into UI display/state

@@ -97,7 +97,11 @@ export default function BVNModificationPage() {
     "bvn",
     "modification",
     pricingVariant,
-    { modificationType: normalizedModificationType, verificationType },
+    {
+      modificationType: normalizedModificationType,
+      verificationType,
+      type: pricingVariant
+    },
   )
 
   useEffect(() => {
