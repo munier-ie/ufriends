@@ -199,7 +199,7 @@ export class PremblyClient {
   async getBVNWithPhone(params: BVNByPhoneParams) {
     // Per docs: POST /verification/bvn_with_phone payload { number: "080..." }
     // User request specified: https://docs.prembly.com/docs/get-bvn-with-phone-number
-    const payload = { phone_number: params.phoneNumber } as any;
+    const payload = { number: params.phoneNumber } as any;
     return this.makeRequest('/verification/bvn_with_phone', 'POST', payload);
   }
 

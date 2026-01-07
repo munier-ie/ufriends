@@ -92,6 +92,10 @@ export async function GET(req: NextRequest) {
     // Build search order for each alias with standard fallbacks
     for (const sub of subAliases) {
       searchOrder.push({ where: { category, subservice: sub, variant: variantToUse } })
+      // Check "default" as fallback if variantToUse isn't already "default"
+      if (variantToUse.toLowerCase() !== "default") {
+        searchOrder.push({ where: { category, subservice: sub, variant: "default" } })
+      }
       searchOrder.push({ where: { category, subservice: sub, variant: "" } })
     }
     // Category-level fallback (no subservice/variant)
