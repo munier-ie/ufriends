@@ -89,6 +89,7 @@ export default function BVNModificationPage() {
       case "Address Update": return "address"
       case "Gender Correction": return "gender"
       case "Email Correction": return "email"
+      case "Others": return "others"
       default: return "name" // Fallback to cheapest or common
     }
   }, [modificationType])

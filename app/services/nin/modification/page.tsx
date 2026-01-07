@@ -58,6 +58,7 @@ export default function NINModificationPage() {
       case "address": return "address"
       case "gender": return "gender"
       case "phone": return "phone"
+      case "other": return "others"
       default: return "name" // Fallback
     }
   }, [modificationType])
