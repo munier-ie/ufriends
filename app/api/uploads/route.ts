@@ -25,8 +25,6 @@ export async function POST(req: NextRequest) {
 
         if (!file) return NextResponse.json({ error: "Missing file" }, { status: 400 })
 
-        ensureDir(UPLOADS_DIR)
-
         // Generate specific filename to avoid collisions
         const ext = path.extname(file.name || "").toLowerCase() || ".jpg"
         const allowedExts = [".jpg", ".jpeg", ".png", ".pdf", ".webp"]
@@ -34,17 +32,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Invalid file type. Only images and PDFs allowed." }, { status: 400 })
         }
 
-        const filename = `${auth.user.id}-${randomUUID()}${ext}`
-        const dest = path.join(UPLOADS_DIR, filename)
-
         const buf = Buffer.from(await file.arrayBuffer())
-        fs.writeFileSync(dest, buf)
 
-        const url = `/uploads/${filename}`
+        // Upload to Cloudinary
+        const { uploadToCloudinary } = await import("@/lib/cloudinary")
+        const result = await uploadToCloudinary(buf, "marketer-documents")
 
-        return NextResponse.json({ ok: true, url, filename })
-    } catch (err) {
+        return NextResponse.json({ ok: true, url: result.secure_url, filename: result.public_id })
+    } catch (err: any) {
         console.error("Upload error:", err)
-        return NextResponse.json({ error: "Failed to upload file" }, { status: 500 })
+        return NextResponse.json({ error: "Failed to upload file: " + (err.message || String(err)) }, { status: 500 })
     }
 }
