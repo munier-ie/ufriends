@@ -43,7 +43,7 @@ export default function BecomeMarketerPage() {
   useEffect(() => {
     const loadStatus = async () => {
       try {
-        const res = await fetch("/api/marketers/me")
+        const res = await authFetch("/api/marketers/me")
         if (res.ok) {
           const data = await res.json()
           if (data.profile) {
@@ -90,8 +90,13 @@ export default function BecomeMarketerPage() {
       const uploadFile = async (file: File) => {
         const formData = new FormData()
         formData.append("file", file)
-        const res = await fetch("/api/uploads", { method: "POST", body: formData })
-        if (!res.ok) throw new Error("File upload failed")
+        const res = await authFetch("/api/uploads", { method: "POST", body: formData })
+
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}))
+          throw new Error(errorData.error || "File upload failed")
+        }
+
         return await res.json()
       }
 
@@ -106,7 +111,7 @@ export default function BecomeMarketerPage() {
         validIdUrl: validIdRes.url,
       }
 
-      const res = await fetch("/api/marketers/register", {
+      const res = await authFetch("/api/marketers/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
