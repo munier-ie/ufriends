@@ -693,7 +693,7 @@ function htmlFor(action: string, name: string, slipType?: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, { roles: ["ADMIN", "AGENT", "USER"] })
+    const auth = await requireAuth(req, { roles: ["ADMIN", "AGENT", "USER", "MARKETER"] })
     if (!auth.ok) return auth.response
 
     const body = await req.json().catch(() => ({}))
