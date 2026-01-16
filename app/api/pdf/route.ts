@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 // - params: payload for the selected action
 export async function POST(req: NextRequest) {
   try {
-    const auth = await requireAuth(req, { roles: ["ADMIN", "AGENT", "USER"] })
+    const auth = await requireAuth(req, { roles: ["ADMIN", "AGENT", "USER", "MARKETER"] })
     if (!auth.ok) return auth.response
 
     const reqBody = await req.json().catch(() => ({}))
