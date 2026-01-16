@@ -20,7 +20,7 @@ import { PinPrompt } from "@/components/PinPrompt"
 export default function NINSlipPage() {
   const [showPrivacyWarning, setShowPrivacyWarning] = useState(true)
   const [retrievalMethod, setRetrievalMethod] = useState("")
-  const [slipType, setSlipType] = useState("")
+  const [slipType, setSlipType] = useState("standard")
   const [ninNumber, setNinNumber] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
   const [fullName, setFullName] = useState("")
@@ -39,8 +39,9 @@ export default function NINSlipPage() {
   const { toast } = useToast()
 
   // Use dynamic pricing hook (catalog-based)
+  // Switching to "nin" service category to avoid Forbidden error on "verification"
   const variantLabel = (slipType || "standard").toLowerCase()
-  const { price, isLoading, error, submitService, reference } = useDynamicPricing("verification", "nin", variantLabel)
+  const { price, isLoading, error, submitService, reference } = useDynamicPricing("nin", "slip", variantLabel)
 
   const handleSubmit = async () => {
     if (!isFormValid()) {

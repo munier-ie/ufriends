@@ -44,6 +44,10 @@ async function detectRoleFallback(): Promise<Role> {
 function mapVerificationAction(category: string, subservice: string): string | null {
   const c = category.trim().toLowerCase()
   const s = subservice.trim().toLowerCase()
+  if (c === "verification" || c === "verify") {
+    if (s === "nin") return "nin.advanced"
+    if (s === "bvn") return "bvn.advanced"
+  }
   if (c === "nin") {
     if (s === "slip") return "nin.slip"
     if (s === "printout") return "nin.printout"

@@ -123,32 +123,57 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
         return NextResponse.json({ error: "Insufficient wallet balance" }, { status: 402 })
       }
 
+      // Verify via Prembly (using default provider config from env if not set)
+      const res = await verifyNINViaPrembly({
+        nin: String(params?.nin || ""),
+        phone: params?.phone ? String(params.phone) : undefined,
+        firstName: params?.firstName ? String(params.firstName) : undefined,
+        lastName: params?.lastName ? String(params.lastName) : undefined,
+        dateOfBirth: params?.dateOfBirth ? String(params.dateOfBirth) : undefined,
+        gender: params?.gender ? String(params.gender) : undefined,
+      })
+
+      if (!res.ok) {
+        await prisma.$transaction([
+          prisma.transaction.create({
+            data: {
+              userId: auth.user.id,
+              type: "SERVICE_PURCHASE",
+              amount,
+              status: "FAILED",
+              reference,
+              category: serviceId,
+              subservice: actionId,
+              meta: { serviceId, action: actionId, params, error: res.message, code: res.code },
+            },
+          }),
+          prisma.auditLog.create({
+            data: {
+              actorId: auth.user.id,
+              action: "SERVICE_REQUEST_FAILED",
+              resourceType: "Transaction",
+              resourceId: reference,
+              diffJson: { amount, serviceId, action: actionId, reason: res.message, code: res.code, params },
+            },
+          }),
+        ])
+        return NextResponse.json({ ok: false, reference, error: res.message, code: res.code }, { status: 400 })
+      }
+
+      // Success
       await prisma.$transaction([
         prisma.transaction.create({
           data: {
             userId: auth.user.id,
             type: "SERVICE_PURCHASE",
             amount,
-            status: "PENDING",
+            status: "SUCCESS",
             reference,
             category: serviceId,
             subservice: actionId,
-            meta: { serviceId, subServiceId, action: actionId, params },
+            meta: { serviceId, subServiceId, action: actionId, slip: "nin", variant: subServiceId, params },
           },
         }),
-        prisma.auditLog.create({
-          data: {
-            actorId: auth.user.id,
-            action: "SERVICE_REQUEST_INIT",
-            resourceType: "Transaction",
-            resourceId: reference,
-            diffJson: { amount, serviceId, action: actionId, subServiceId, params },
-          },
-        }),
-      ])
-
-      await prisma.$transaction([
-        prisma.transaction.update({ where: { reference }, data: { status: "SUCCESS", meta: { slip: "nin", variant: subServiceId } } }),
         prisma.wallet.update({ where: { userId: auth.user.id }, data: { balance: { decrement: amount } } }),
         prisma.auditLog.create({
           data: {
@@ -161,7 +186,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
         }),
       ])
 
-      return NextResponse.json({ ok: true, reference })
+      return NextResponse.json({ ok: true, reference, data: res.data })
     }
 
     // BVN services (printout, advanced, retrieval_phone) via Prembly; debit wallet on success

@@ -302,7 +302,8 @@ function htmlFor(action: string, name: string, slipType?: string) {
   }
 
   if (action === "nin.printout" || action === "nin.advanced" || action === "nin.slip") {
-    const t = String(slipType || "basic").toLowerCase()
+    const rawT = String(slipType || "").toLowerCase()
+    const t = rawT || ((action === "nin.slip" || action === "nin.advanced") ? "standard" : "basic")
     if (t === "premium") {
       const bg = "/assets/premium-blank.jpg"
       const premium = `<!DOCTYPE html>
