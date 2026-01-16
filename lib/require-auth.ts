@@ -35,8 +35,14 @@ export async function requireAuth(req: Request, options: RequireAuthOptions = {}
   }
 
   // Enforce role check if required
-  if (options.roles && user.role && !options.roles.includes(user.role)) {
-    return { ok: false, response: NextResponse.json({ error: "Forbidden (Role Mismatch)" }, { status: 403 }) }
+  if (options.roles) {
+    const userRole = String(user.role || "").toUpperCase();
+    const allowedRoles = options.roles.map(r => r.toUpperCase());
+
+    if (!userRole || !allowedRoles.includes(userRole)) {
+      console.log(`[AUTH] Role Mismatch for user ${user.id}. Got: ${user.role}, Expected one of: ${options.roles.join(", ")}`);
+      return { ok: false, response: NextResponse.json({ error: "Forbidden (Role Mismatch)" }, { status: 403 }) }
+    }
   }
 
   // Return the DB user to ensure downstream consumers have up-to-date data
