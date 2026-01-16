@@ -36,7 +36,7 @@ export async function requireAuth(req: Request, options: RequireAuthOptions = {}
 
   // Enforce role check if required
   if (options.roles && user.role && !options.roles.includes(user.role)) {
-    return { ok: false, response: NextResponse.json({ error: "Forbidden" }, { status: 403 }) }
+    return { ok: false, response: NextResponse.json({ error: "Forbidden (Role Mismatch)" }, { status: 403 }) }
   }
 
   // Return the DB user to ensure downstream consumers have up-to-date data

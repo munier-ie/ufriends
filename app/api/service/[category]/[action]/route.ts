@@ -30,7 +30,7 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
     if (serviceId.toLowerCase() !== "nin" && serviceId.toLowerCase() !== "verification") {
       const sec = await protect(req as any)
       if (!sec.allowed) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+        return NextResponse.json({ error: "Forbidden (Security via Arcjet)" }, { status: 403 })
       }
     }
 
