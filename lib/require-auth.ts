@@ -41,7 +41,7 @@ export async function requireAuth(req: Request, options: RequireAuthOptions = {}
 
     if (!userRole || !allowedRoles.includes(userRole)) {
       console.log(`[AUTH] Role Mismatch for user ${user.id}. Got: ${user.role}, Expected one of: ${options.roles.join(", ")}`);
-      return { ok: false, response: NextResponse.json({ error: "Forbidden (Role Mismatch)" }, { status: 403 }) }
+      return { ok: false, response: NextResponse.json({ error: `Forbidden (Role Mismatch: Found '${userRole}', Expected '[${allowedRoles.join(",")}]')` }, { status: 403 }) }
     }
   }
 
