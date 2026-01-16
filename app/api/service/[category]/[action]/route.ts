@@ -21,14 +21,18 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ category: 
     const auth = await requireAuth(req)
     if (!auth.ok) return auth.response
 
-    const sec = await protect(req as any)
-    if (!sec.allowed) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
-
     const { category, action } = await ctx.params
     const serviceId = decodeURIComponent(category)
     const actionId = decodeURIComponent(action)
+
+    // Exempt NIN/Verification from Arcjet to prevent false positives for marketers
+    // We rely on Auth + PIN + Wallet checks for security here.
+    if (serviceId.toLowerCase() !== "nin" && serviceId.toLowerCase() !== "verification") {
+      const sec = await protect(req as any)
+      if (!sec.allowed) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
+    }
 
     const body = await req.json()
     const Schema = z.object({
